@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #14241a;
+
+  /* WPN Brand — Green & Gold */
+  --green-950: #0a1f14;
+  --green-900: #0e2b1c;
+  --green-800: #14402a;
+  --green-700: #1a5638;
+  --green-600: #1f6b45;
+  --green-500: #2a8456;
+  --green-400: #4ba578;
+  --gold-600: #b88a1f;
+  --gold-500: #d4a531;
+  --gold-400: #e6bd54;
+  --gold-300: #f0d182;
+  --cream: #faf6ec;
+  --sand: #f3ecd9;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-green-950: var(--green-950);
+  --color-green-900: var(--green-900);
+  --color-green-800: var(--green-800);
+  --color-green-700: var(--green-700);
+  --color-green-600: var(--green-600);
+  --color-green-500: var(--green-500);
+  --color-green-400: var(--green-400);
+  --color-gold-600: var(--gold-600);
+  --color-gold-500: var(--gold-500);
+  --color-gold-400: var(--gold-400);
+  --color-gold-300: var(--gold-300);
+  --color-cream: var(--cream);
+  --color-sand: var(--sand);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), Georgia, serif;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: var(--font-display), serif;
+  letter-spacing: -0.02em;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade-in {
+  animation: fadeIn 1.2s ease both;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+html { scroll-behavior: smooth; }
+
+::selection {
+  background: var(--gold-400);
+  color: var(--green-900);
+}
+
+.texture-grain {
+  background-image: radial-gradient(rgba(20,40,26,0.04) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
