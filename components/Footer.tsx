@@ -34,8 +34,9 @@ export default function Footer() {
             </div>
           </div>
           <p className="mt-5 max-w-sm text-sm leading-relaxed">
-            A non-partisan network of professionals of Wassa descent, united to
-            advance the development of Wassa and its people.
+            A non-partisan, non-profit professional body registered under the
+            Companies Act, 2019 (Act 992) — mobilising Wassa professionals at
+            home and abroad for the development of the Wassa traditional area.
           </p>
           <p className="mt-5 font-display text-lg italic text-gold-400">
             &ldquo;{site.mantra}&rdquo;

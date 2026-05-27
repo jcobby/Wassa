@@ -89,7 +89,7 @@ export default function Navbar() {
 
         <div className="hidden lg:block">
           <Link
-            href="#"
+            href="/login"
             className="rounded-full bg-gold-500 px-6 py-2.5 text-sm font-semibold text-green-950 shadow-lg shadow-gold-500/20 transition-all hover:bg-gold-400 hover:shadow-gold-400/30"
           >
             Member Login
@@ -183,7 +183,8 @@ export default function Navbar() {
           ))}
           <li className="pt-3">
             <Link
-              href="#"
+              href="/login"
+              onClick={() => setOpen(false)}
               className="block rounded-full bg-gold-500 px-6 py-3 text-center font-semibold text-green-950"
             >
               Member Login

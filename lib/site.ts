@@ -27,8 +27,8 @@ export const nav = [
     label: "Who We Are",
     children: [
       { label: "About WPN", href: "/about" },
-      { label: "Executives", href: "#" },
-      { label: "Committees", href: "#" },
+      { label: "Executives", href: "/executives" },
+      { label: "Committees", href: "/committees" },
     ],
   },
   {
@@ -48,7 +48,7 @@ export const nav = [
   {
     label: "Membership",
     children: [
-      { label: "Requirements", href: "#" },
+      { label: "Requirements", href: "/membership" },
       { label: "Dues Payment", href: "#" },
     ],
   },

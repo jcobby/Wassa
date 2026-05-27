@@ -5,46 +5,46 @@ import Reveal from "@/components/Reveal";
 
 const benefits = [
   {
-    title: "Employment & Scholarships",
-    body: "Members gain access to opportunities sourced from an extensively networked community spanning every professional discipline.",
+    title: "Voice in the General Assembly",
+    body: "Full Members in good standing attend, vote, and raise matters at the General Assembly — the supreme decision-making body of the Network.",
   },
   {
-    title: "Meet Prominent Business Leaders",
-    body: "Through our networking initiatives, members meet, connect with, and learn from Wassa's savviest business minds.",
+    title: "Eligibility for Elected Office",
+    body: "Stand for President, Vice President, Secretary, Treasurer, and other Executive Council positions, subject to the eligibility criteria in the Constitution.",
   },
   {
-    title: "Discounts on Products & Services",
-    body: "Active membership entitles you to discounts at selected outlets and services partnered with the Network.",
+    title: "Chapter Network at Home & Abroad",
+    body: "Plug into regional, district, and international chapters wherever Wassa professionals gather in sufficient numbers.",
   },
   {
-    title: "Assistance from a Wassa Native",
-    body: "No member navigates alone. A diverse collection of experts stands ready to lend a hand when the need arises.",
+    title: "Standing Committees & Projects",
+    body: "Contribute to committees on Education, Health, Agriculture, Business & Investment, Research & Policy, Advocacy, and more.",
   },
   {
-    title: "Conferences, Dinners & Programs",
-    body: "Attend conferences and events that equip executives with knowledge while serving as excellent networking grounds.",
+    title: "Mentorship & Youth Development",
+    body: "Engage with the Wassa Students Union (WASU) and Wassa Youth Association (WAYA) to mentor the next generation of Wassa professionals.",
   },
   {
-    title: "Be Honoured",
-    body: "WPN celebrates exceptional accomplishments at the leadership, financial, and social levels. Our members' wins are ours.",
+    title: "Recognition & Honorary Status",
+    body: "Distinguished contributions to Wassa may be recognised through Honorary Membership conferred by the General Assembly.",
   },
 ];
 
 const focus = [
   {
-    tag: "WPN Gives Back",
-    title: "Community Impact Projects",
-    body: "Charity initiatives that bring opportunity and hope to the less privileged across Wassa.",
-  },
-  {
-    tag: "Yenko Wassa",
-    title: "Heritage & Homecoming",
-    body: "Celebrating and protecting the rich traditions, history, and culture of the Wassa people.",
+    tag: "WPN Advances",
+    title: "Education, Health & Agriculture",
+    body: "Sustainable development in the economic, financial, educational, health, and agricultural sectors across the Wassa area.",
   },
   {
     tag: "WPN Inspires",
-    title: "Mentorship & Education",
-    body: "Guiding younger generations toward higher education, vocational skill, and responsible leadership.",
+    title: "Youth, Women & Mentorship",
+    body: "Leadership development, mentorship, and the empowerment of Wassa youth and women — including oversight of WASU and WAYA.",
+  },
+  {
+    tag: "WPN Advocates",
+    title: "Policy & Fair Allocation",
+    body: "Advocacy for Wassa's fair share of national development resources, with evidence-based research and policy engagement.",
   },
 ];
 
@@ -80,9 +80,10 @@ export default function Home() {
               className="animate-fade-up mt-7 max-w-xl text-lg leading-relaxed text-cream/75"
               style={{ animationDelay: "0.2s" }}
             >
-              The Wassa Professionals Network unites accomplished professionals
-              of Wassa descent to pool their skills, expertise, and experience
-              for the lasting development of Wassa and its people.
+              A non-partisan, non-profit body uniting Wassa professionals at
+              home and in the diaspora — mobilising expertise, advocating for
+              equitable resource allocation, and catalysing lasting socio-
+              economic transformation across the Wassa traditional area.
             </p>
 
             <div
@@ -108,8 +109,8 @@ export default function Home() {
               style={{ animationDelay: "0.4s" }}
             >
               {[
-                ["4+", "Global Branches"],
-                ["12+", "Professional Fields"],
+                ["10+", "Standing Committees"],
+                ["13+", "Professional Fields"],
                 ["100%", "Community Driven"],
               ].map(([n, l]) => (
                 <div key={l}>
@@ -146,11 +147,12 @@ export default function Home() {
               </div>
               <div className="absolute -bottom-6 -left-6 rounded-2xl border border-gold-400/20 bg-cream px-6 py-4 shadow-xl">
                 <div className="text-xs uppercase tracking-wider text-green-600">
-                  Established
+                  Registered
                 </div>
-                <div className="font-display text-2xl font-semibold text-green-900">
-                  [ Year ]
+                <div className="font-display text-lg font-semibold text-green-900">
+                  Companies Act, 2019
                 </div>
+                <div className="text-xs text-green-900/60">Act 992 &middot; Ghana</div>
               </div>
             </div>
           </div>
@@ -169,9 +171,11 @@ export default function Home() {
               <span className="italic text-gold-600">ambition</span>
             </h2>
             <p className="mt-6 text-lg leading-relaxed text-green-900/70">
-              WPN exists to create a common ground where professionals of Wassa
-              descent exchange ideas, develop one another, protect our cultural
-              heritage, and create opportunities for the next generation.
+              WPN exists to mobilise, connect, and deploy the expertise of
+              Wassa professionals — providing technical guidance to traditional
+              authorities and district assemblies, fostering leadership among
+              Wassa youth and women, and advancing the sustainable development
+              of the Wassa traditional area.
             </p>
           </Reveal>
 
