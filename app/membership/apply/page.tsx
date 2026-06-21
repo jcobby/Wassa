@@ -14,7 +14,7 @@ const STEPS = [
 ];
 
 const TITLES = ["Mr.", "Mrs.", "Dr.", "Professor", "Other"];
-const GENDERS = ["Male", "Female", "Prefer not to say"];
+const GENDERS = ["Male", "Female"];
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
