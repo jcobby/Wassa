@@ -316,7 +316,7 @@ export default function Membership() {
       <section className="bg-cream py-24">
         <div className="mx-auto max-w-5xl px-6">
           <Reveal>
-            <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-green-800 to-green-950 px-8 py-16 text-center sm:px-16">
+            <div className="relative overflow-hidden rounded-[2rem] bg-linear-to-br from-green-800 to-green-950 px-8 py-16 text-center sm:px-16">
               <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-gold-500/20 blur-2xl" />
               <h2 className="font-display text-3xl font-semibold text-cream sm:text-4xl">
                 Ready to <span className="italic text-gold-400">join us?</span>
@@ -327,7 +327,7 @@ export default function Membership() {
               </p>
               <div className="mt-8 flex flex-wrap justify-center gap-4">
                 <Link
-                  href="/contact"
+                  href="/membership/apply"
                   className="rounded-full bg-gold-500 px-8 py-3.5 font-semibold text-green-950 transition-all hover:-translate-y-0.5 hover:bg-gold-400"
                 >
                   Start an Application

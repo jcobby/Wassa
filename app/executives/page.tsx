@@ -188,7 +188,7 @@ export default function Executives() {
           </Reveal>
 
           <Reveal delay={120}>
-            <div className="rounded-3xl bg-gradient-to-br from-green-800 to-green-950 p-10 text-cream">
+            <div className="rounded-3xl bg-linear-to-br from-green-800 to-green-950 p-10 text-cream">
               <div className="text-xs font-semibold uppercase tracking-wider text-gold-400">
                 Oath of Office
               </div>
@@ -209,7 +209,7 @@ export default function Executives() {
       <section className="bg-cream py-24">
         <div className="mx-auto max-w-5xl px-6">
           <Reveal>
-            <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-green-800 to-green-950 px-8 py-16 text-center sm:px-16">
+            <div className="relative overflow-hidden rounded-[2rem] bg-linear-to-br from-green-800 to-green-950 px-8 py-16 text-center sm:px-16">
               <div className="pointer-events-none absolute -left-16 -bottom-16 h-64 w-64 rounded-full bg-gold-500/20 blur-2xl" />
               <h2 className="font-display text-3xl font-semibold text-cream sm:text-4xl">
                 Interested in serving?

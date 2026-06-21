@@ -203,7 +203,7 @@ export default function Contact() {
           {/* Map + socials */}
           <Reveal delay={120}>
             <div className="flex h-full flex-col gap-8">
-              <div className="flex flex-1 items-center justify-center rounded-3xl border border-green-900/10 bg-gradient-to-br from-green-800 to-green-950 p-10 text-center texture-grain">
+              <div className="flex flex-1 items-center justify-center rounded-3xl border border-green-900/10 bg-linear-to-br from-green-800 to-green-950 p-10 text-center texture-grain">
                 <div>
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-gold-400/40 text-gold-400">
                     <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none">

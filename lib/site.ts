@@ -49,6 +49,7 @@ export const nav = [
     label: "Membership",
     children: [
       { label: "Requirements", href: "/membership" },
+      { label: "Apply for Membership", href: "/membership/apply" },
       { label: "Dues Payment", href: "#" },
     ],
   },

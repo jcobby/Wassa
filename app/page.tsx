@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
@@ -91,7 +92,7 @@ export default function Home() {
               style={{ animationDelay: "0.3s" }}
             >
               <Link
-                href="#"
+                href="/membership/apply"
                 className="rounded-full bg-gold-500 px-8 py-3.5 font-semibold text-green-950 shadow-xl shadow-gold-500/25 transition-all hover:-translate-y-0.5 hover:bg-gold-400"
               >
                 Join the Network
@@ -127,21 +128,24 @@ export default function Home() {
 
           <div className="animate-fade-in lg:col-span-5" style={{ animationDelay: "0.3s" }}>
             <div className="relative">
-              <div className="aspect-[4/5] overflow-hidden rounded-3xl border border-gold-400/20 bg-gradient-to-br from-green-800 via-green-900 to-green-950 shadow-2xl">
-                <div className="flex h-full flex-col items-center justify-center p-10 text-center">
-                  <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-gold-400/50 bg-green-900">
-                    <span className="font-display text-4xl font-semibold text-gold-400">
-                      W
-                    </span>
-                  </div>
+              <div className="overflow-hidden rounded-3xl border border-gold-400/20 bg-linear-to-br from-green-800 via-green-900 to-green-950 shadow-2xl">
+                <div className="flex flex-col items-center justify-center px-10 py-12 text-center">
+                  <Image
+                    src="/logo.jpeg"
+                    alt="Wassa Professionals Network"
+                    width={280}
+                    height={280}
+                    className="drop-shadow-2xl"
+                    priority
+                  />
                   <p className="mt-6 font-display text-2xl italic text-cream">
                     One Wassa.
                   </p>
                   <p className="font-display text-2xl italic text-gold-400">
                     One Network.
                   </p>
-                  <p className="mt-4 text-sm text-cream/50">
-                    [ Replace with hero image ]
+                  <p className="mt-3 text-sm uppercase tracking-[0.2em] text-cream/40">
+                    Unity &middot; Professionalism &middot; Progress
                   </p>
                 </div>
               </div>
@@ -248,7 +252,7 @@ export default function Home() {
       <section className="bg-cream py-24">
         <div className="mx-auto max-w-5xl px-6">
           <Reveal>
-            <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-green-800 to-green-950 px-8 py-16 text-center sm:px-16">
+            <div className="relative overflow-hidden rounded-[2rem] bg-linear-to-br from-green-800 to-green-950 px-8 py-16 text-center sm:px-16">
               <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-gold-500/20 blur-2xl" />
               <h2 className="font-display text-3xl font-semibold text-cream sm:text-4xl">
                 Ready to help a Wassa,{" "}
@@ -260,7 +264,7 @@ export default function Home() {
               </p>
               <div className="mt-8 flex flex-wrap justify-center gap-4">
                 <Link
-                  href="#"
+                  href="/membership/apply"
                   className="rounded-full bg-gold-500 px-8 py-3.5 font-semibold text-green-950 transition-all hover:-translate-y-0.5 hover:bg-gold-400"
                 >
                   Become a Member

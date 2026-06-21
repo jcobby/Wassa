@@ -188,7 +188,7 @@ export default function About() {
                   )}
 
                   {s.mantra && (
-                    <div className="mt-6 overflow-hidden rounded-3xl bg-gradient-to-br from-green-800 to-green-950 p-10 sm:p-12">
+                    <div className="mt-6 overflow-hidden rounded-3xl bg-linear-to-br from-green-800 to-green-950 p-10 sm:p-12">
                       <div className="font-display text-4xl text-gold-400/40">
                         &ldquo;
                       </div>

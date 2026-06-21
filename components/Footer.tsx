@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { site } from "@/lib/site";
 
 const cols = [
@@ -20,15 +21,19 @@ export default function Footer() {
   return (
     <footer className="relative overflow-hidden bg-green-950 text-cream/70">
       {/* top gold rule */}
-      <div className="h-1 w-full bg-gradient-to-r from-transparent via-gold-500 to-transparent" />
+      <div className="h-1 w-full bg-linear-to-r from-transparent via-gold-500 to-transparent" />
 
       <div className="mx-auto grid max-w-7xl gap-12 px-6 py-16 md:grid-cols-2 lg:grid-cols-5">
         {/* Brand */}
         <div className="lg:col-span-2">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gold-400/40 bg-gradient-to-br from-green-700 to-green-900 text-gold-400">
-              <span className="font-display text-xl font-semibold">W</span>
-            </div>
+            <Image
+              src="/logo.jpeg"
+              alt={site.name}
+              width={48}
+              height={48}
+              className="rounded-full"
+            />
             <div className="font-display text-lg font-semibold text-cream">
               {site.name}
             </div>

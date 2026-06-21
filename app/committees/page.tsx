@@ -144,7 +144,7 @@ export default function Committees() {
           </Reveal>
 
           <Reveal delay={120}>
-            <div className="rounded-3xl bg-gradient-to-br from-green-800 to-green-950 p-10 text-cream">
+            <div className="rounded-3xl bg-linear-to-br from-green-800 to-green-950 p-10 text-cream">
               <div className="text-xs font-semibold uppercase tracking-wider text-gold-400">
                 Get Involved
               </div>

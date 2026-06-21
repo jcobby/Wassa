@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { nav, site } from "@/lib/site";
 
@@ -27,9 +28,13 @@ export default function Navbar() {
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         {/* Logo */}
         <Link href="/" className="group flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full border border-gold-400/40 bg-gradient-to-br from-green-700 to-green-900 text-gold-400 transition-transform group-hover:scale-105">
-            <span className="font-display text-lg font-semibold">W</span>
-          </div>
+          <Image
+            src="/logo.jpeg"
+            alt={site.name}
+            width={44}
+            height={44}
+            className="rounded-full transition-transform group-hover:scale-105"
+          />
           <div className="leading-tight">
             <div className="font-display text-base font-semibold text-cream">
               {site.short}
