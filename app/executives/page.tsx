@@ -3,61 +3,78 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 
-const officers = [
+const executives = [
   {
+    name: "Mr Justice Cobbinah (JJY)",
     role: "President",
     summary:
       "Head of the organisation. Provides strategic leadership, presides over all meetings, represents WPN at official functions, signs official documents, and serves as principal spokesperson.",
   },
   {
+    name: "Mr Philip Eshun",
     role: "Vice President",
     summary:
-      "Acts as President in their absence. Holds a defined portfolio assigned by the Executive Council — at minimum overseeing development programmes and committee coordination — and leads at least one standing committee.",
+      "Acts as President in their absence. Holds a defined portfolio assigned by the Executive Council — overseeing development programmes and committee coordination — and leads at least one standing committee.",
   },
   {
+    name: "Victoria Krakue",
+    role: "Second Vice President",
+    summary:
+      "Supports the Vice President and assumes executive responsibilities as assigned by the Council. Ensures continuity of leadership across all WPN programmes.",
+  },
+  {
+    name: "Israel Ackah Esq",
     role: "General Secretary",
     summary:
       "Responsible for all administration. Keeps and circulates minutes, handles official correspondence, maintains the membership register, gives notice of meetings, and oversees safe storage of WPN records.",
   },
   {
-    role: "Assistant General Secretary",
+    name: "Mr Onyameba Atta-Kesson",
+    role: "Deputy General Secretary",
     summary:
       "Supports and deputises for the General Secretary, taking responsibility for specific administrative portfolios as assigned by the Executive Council.",
   },
   {
-    role: "Treasurer",
-    summary:
-      "Oversees financial management. Co-signatory on all WPN accounts, ensures proper custody of funds, and presents quarterly financial reports to the Executive Council and at each AGM.",
-  },
-  {
+    name: "Mr David Agyefi-Mensah",
     role: "Financial Secretary",
     summary:
       "Collects and records all dues, levies, and income. Issues receipts, reconciles records with the Treasurer monthly, and reports arrears to the Executive Council.",
   },
   {
+    name: "Mr Kwesi Pimpah Nkrumah",
+    role: "Treasurer",
+    summary:
+      "Oversees financial management. Co-signatory on all WPN accounts, ensures proper custody of funds, and presents quarterly financial reports to the Executive Council and at each AGM.",
+  },
+  {
+    name: "Professor Stephen Agyefi-Mensah",
     role: "Organising Secretary",
     summary:
       "Coordinates and plans all WPN meetings, events, and programmes. Oversees logistics and mobilisation and maintains the organisation's activity calendar.",
   },
   {
-    role: "Public Relations Officer",
-    summary:
-      "Manages all external and internal communications. Oversees social media and publications, handles media relations, and promotes the image of WPN.",
-  },
-  {
-    role: "Women's Affairs Officer",
-    summary:
-      "Champions the interests and participation of women members. Coordinates programmes for economic empowerment and professional development of women in Wassa, and advises the Council on gender mainstreaming.",
-  },
-  {
-    role: "Youth Affairs Officer",
+    name: "Mr William Abakah",
+    role: "Youth Affairs Director",
     summary:
       "Champions the interests of young members and Student Affiliates. Coordinates mentorship, scholarship, and youth development programmes, and liaises with WASU and WAYA.",
   },
   {
-    role: "Chapter Representatives (×2)",
+    name: "Kukua Borden Esq",
+    role: "Women Affairs Director",
     summary:
-      "Two representatives elected by chapter delegates to bring the voice of regional, district, and international chapters into the Executive Council.",
+      "Champions the interests and participation of women members. Coordinates programmes for economic empowerment and professional development of women in Wassa, and advises the Council on gender mainstreaming.",
+  },
+  {
+    name: "Dr Yaw Anokye Frimpong Esq",
+    role: "Corporate Affairs Director",
+    summary:
+      "Manages all external and internal communications. Oversees social media and publications, handles media relations, corporate partnerships, and promotes the image of WPN.",
+  },
+  {
+    name: "Dr Anthony Ntsiful",
+    role: "Council of Elders Representative",
+    summary:
+      "Brings the voice and wisdom of the Council of Elders into the Executive Council, ensuring decisions are grounded in Wassa tradition, values, and long-term community interest.",
   },
 ];
 
@@ -84,49 +101,41 @@ export default function Executives() {
             style={{ animationDelay: "0.2s" }}
           >
             The Executive Council manages the affairs of WPN between General
-            Assembly meetings and is collectively accountable to the
-            membership.
+            Assembly meetings and is collectively accountable to the membership.
           </p>
         </div>
       </section>
 
-      {/* TERM STATS */}
+      {/* STATS */}
       <section className="mx-auto max-w-7xl px-6 -mt-12">
         <Reveal>
           <div className="grid gap-px overflow-hidden rounded-3xl border border-green-900/10 bg-green-900/10 sm:grid-cols-4">
             {[
               ["4", "Year Term"],
               ["2", "Term Limit"],
-              ["11", "Council Positions"],
-              ["≥2", "Women Officers"],
+              ["12", "Council Members"],
+              ["2025", "Inauguration Year"],
             ].map(([n, l]) => (
-              <div
-                key={l}
-                className="bg-white px-6 py-7 text-center sm:text-left"
-              >
-                <div className="font-display text-3xl font-semibold text-green-950">
-                  {n}
-                </div>
-                <div className="mt-1 text-xs uppercase tracking-wider text-green-900/55">
-                  {l}
-                </div>
+              <div key={l} className="bg-white px-6 py-7 text-center sm:text-left">
+                <div className="font-display text-3xl font-semibold text-green-950">{n}</div>
+                <div className="mt-1 text-xs uppercase tracking-wider text-green-900/55">{l}</div>
               </div>
             ))}
           </div>
         </Reveal>
       </section>
 
-      {/* OFFICERS */}
+      {/* MEMBERS GRID */}
       <section className="mx-auto max-w-7xl px-6 py-20">
         <Reveal className="max-w-2xl">
           <div className="flex items-center gap-3">
             <span className="h-px w-10 bg-gold-500" />
             <span className="text-xs font-semibold uppercase tracking-wider text-gold-600">
-              The Officers
+              The Members
             </span>
           </div>
           <h2 className="mt-3 font-display text-3xl font-semibold text-green-950 sm:text-4xl">
-            Roles & responsibilities
+            Council members &amp; their roles
           </h2>
           <p className="mt-4 text-[17px] leading-relaxed text-green-900/70">
             All officers take the Oath of Office, administered by the President
@@ -135,8 +144,8 @@ export default function Executives() {
         </Reveal>
 
         <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {officers.map((o, i) => (
-            <Reveal key={o.role} delay={(i % 3) * 100}>
+          {executives.map((e, i) => (
+            <Reveal key={e.name} delay={(i % 3) * 100}>
               <div className="group h-full rounded-3xl border border-green-900/10 bg-white p-7 transition-all hover:-translate-y-1 hover:border-gold-400/40 hover:shadow-xl hover:shadow-green-900/5">
                 <div className="flex items-start justify-between">
                   <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-900 text-gold-400 transition-colors group-hover:bg-gold-500 group-hover:text-green-950">
@@ -144,15 +153,15 @@ export default function Executives() {
                       {String(i + 1).padStart(2, "0")}
                     </span>
                   </div>
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-green-900/40">
-                    Vacant
+                  <span className="rounded-full border border-green-900/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-green-900/50">
+                    {e.role}
                   </span>
                 </div>
                 <h3 className="mt-5 font-display text-lg font-semibold text-green-950">
-                  {o.role}
+                  {e.name}
                 </h3>
-                <p className="mt-3 text-[14.5px] leading-relaxed text-green-900/70">
-                  {o.summary}
+                <p className="mt-3 text-[14px] leading-relaxed text-green-900/65">
+                  {e.summary}
                 </p>
               </div>
             </Reveal>
