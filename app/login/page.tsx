@@ -2,24 +2,47 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { api, ApiError } from "@/lib/api";
+
+type LoginResponse = {
+  id: string;
+  email: string;
+  role: "member" | "admin";
+  fullName: string;
+};
 
 export default function Login() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [form, setForm] = useState({ email: "", password: "", remember: true });
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const submit = () => {
+  const submit = async () => {
     setError(null);
     if (!form.email || !form.password) {
       setError("Please enter your email and password.");
       return;
     }
     setLoading(true);
-    // [PLACEHOLDER] hook up to auth provider / API route
-    setTimeout(() => setLoading(false), 900);
+    try {
+      const me = await api.post<LoginResponse>("/auth/login", {
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+      });
+      const next = searchParams.get("next");
+      const fallback = me.role === "admin" ? "/admin" : "/dashboard";
+      router.push(next || fallback);
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : "Sign in failed. Please try again."
+      );
+      setLoading(false);
+    }
   };
 
   const field =
@@ -30,7 +53,7 @@ export default function Login() {
       <Navbar />
 
       <section className="relative min-h-screen overflow-hidden bg-green-950 pt-32 pb-20 texture-grain">
-        <div className="pointer-events-none absolute -right-32 -top-24 h-[28rem] w-[28rem] rounded-full bg-green-700/35 blur-3xl" />
+        <div className="pointer-events-none absolute -right-32 -top-24 h-112 w-md rounded-full bg-green-700/35 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 -left-24 h-96 w-96 rounded-full bg-gold-500/15 blur-3xl" />
 
         <div className="mx-auto grid w-full max-w-6xl items-center gap-10 px-6 lg:grid-cols-12">
