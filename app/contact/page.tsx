@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import { site } from "@/lib/site";
+import { api, ApiError } from "@/lib/api";
 
 const info = [
   {
@@ -27,6 +28,8 @@ const info = [
 
 export default function Contact() {
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     first: "",
     last: "",
@@ -34,10 +37,30 @@ export default function Contact() {
     message: "",
   });
 
-  const handleSubmit = () => {
-    // [PLACEHOLDER] hook up to email service / API route
-    if (!form.first || !form.email || !form.message) return;
-    setSent(true);
+  const handleSubmit = async () => {
+    setError(null);
+    if (!form.first || !form.email || !form.message) {
+      setError("Please fill in your first name, email, and message.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await api.post("/contact", {
+        firstName: form.first.trim(),
+        lastName: form.last.trim(),
+        email: form.email.trim().toLowerCase(),
+        message: form.message.trim(),
+      });
+      setSent(true);
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "We couldn't send your message. Please try again."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const field =
@@ -189,11 +212,24 @@ export default function Contact() {
                       }
                     />
                   </div>
+                  {error && (
+                    <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                      {error}
+                    </div>
+                  )}
                   <button
                     onClick={handleSubmit}
-                    className="w-full rounded-xl bg-gold-500 px-6 py-3.5 font-semibold text-green-950 transition-all hover:-translate-y-0.5 hover:bg-gold-400"
+                    disabled={submitting}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gold-500 px-6 py-3.5 font-semibold text-green-950 transition-all hover:-translate-y-0.5 hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
                   >
-                    Submit Message
+                    {submitting ? (
+                      <>
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-green-950/30 border-t-green-950" />
+                        Sending…
+                      </>
+                    ) : (
+                      "Submit Message"
+                    )}
                   </button>
                 </div>
               )}

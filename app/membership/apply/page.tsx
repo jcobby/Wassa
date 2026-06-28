@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { api, ApiError } from "@/lib/api";
 
 const STEPS = [
   "Personal Details",
@@ -26,29 +27,49 @@ const RELATIONSHIPS = [
 ];
 const COUNTRIES = [
   "Ghana",
-  "United Kingdom", "United States", "Canada", "Australia", "Germany",
-  "Netherlands", "Italy", "France", "Spain", "Belgium", "Sweden",
-  "Norway", "Denmark", "Switzerland", "Austria",
-  "Nigeria", "South Africa", "Kenya", "Côte d'Ivoire", "Senegal",
-  "Togo", "Benin", "Cameroon", "Ethiopia", "Tanzania", "Uganda",
-  "Rwanda", "Zambia", "Zimbabwe", "Mozambique", "Namibia", "Botswana",
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina",
-  "Armenia", "Azerbaijan", "Bahrain", "Bangladesh", "Belarus", "Belize",
-  "Bolivia", "Bosnia and Herzegovina", "Brazil", "Brunei", "Bulgaria",
-  "Cambodia", "Chile", "China", "Colombia", "Croatia", "Cuba", "Cyprus",
-  "Czech Republic", "DR Congo", "Ecuador", "Egypt", "Estonia",
-  "Finland", "Georgia", "Greece", "Guatemala", "Honduras", "Hungary",
-  "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Japan",
-  "Jordan", "Kazakhstan", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos",
-  "Latvia", "Lebanon", "Libya", "Lithuania", "Luxembourg", "Malaysia",
-  "Malta", "Mexico", "Moldova", "Mongolia", "Morocco", "Myanmar",
-  "Nepal", "New Zealand", "North Macedonia", "Oman", "Pakistan",
-  "Panama", "Paraguay", "Peru", "Philippines", "Poland", "Portugal",
-  "Qatar", "Romania", "Russia", "Saudi Arabia", "Serbia", "Singapore",
-  "Slovakia", "Slovenia", "Somalia", "South Korea", "Sri Lanka",
-  "Sudan", "Syria", "Taiwan", "Tajikistan", "Thailand", "Tunisia",
-  "Turkey", "Turkmenistan", "Ukraine", "United Arab Emirates", "Uruguay",
-  "Uzbekistan", "Venezuela", "Vietnam", "Yemen", "Other",
+  "Armenia", "Australia", "Austria", "Azerbaijan",
+  "Bahrain", "Bangladesh", "Belarus", "Belgium", "Belize", "Benin",
+  "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei",
+  "Bulgaria", "Burkina Faso", "Burundi",
+  "Cabo Verde", "Cambodia", "Cameroon", "Canada",
+  "Central African Republic", "Chad", "Chile", "China", "Colombia",
+  "Comoros", "Congo (Republic of)", "Côte d'Ivoire", "Croatia", "Cuba",
+  "Cyprus", "Czech Republic",
+  "Denmark", "Djibouti", "DR Congo",
+  "Ecuador", "Egypt", "Equatorial Guinea", "Eritrea", "Estonia",
+  "Eswatini", "Ethiopia",
+  "Finland", "France",
+  "Gabon", "Gambia", "Georgia", "Germany", "Greece", "Guatemala",
+  "Guinea", "Guinea-Bissau",
+  "Honduras", "Hungary",
+  "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy",
+  "Japan", "Jordan",
+  "Kazakhstan", "Kenya", "Kosovo", "Kuwait", "Kyrgyzstan",
+  "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya",
+  "Lithuania", "Luxembourg",
+  "Madagascar", "Malawi", "Malaysia", "Mali", "Malta", "Mauritania",
+  "Mauritius", "Mexico", "Moldova", "Mongolia", "Morocco", "Mozambique",
+  "Myanmar",
+  "Namibia", "Nepal", "Netherlands", "New Zealand", "Niger", "Nigeria",
+  "North Macedonia", "Norway",
+  "Oman",
+  "Pakistan", "Panama", "Paraguay", "Peru", "Philippines", "Poland",
+  "Portugal",
+  "Qatar",
+  "Romania", "Russia", "Rwanda",
+  "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia",
+  "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia",
+  "Somalia", "South Africa", "South Korea", "South Sudan", "Spain",
+  "Sri Lanka", "Sudan", "Sweden", "Switzerland", "Syria",
+  "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Togo", "Tunisia",
+  "Turkey", "Turkmenistan",
+  "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom",
+  "United States", "Uruguay", "Uzbekistan",
+  "Venezuela", "Vietnam",
+  "Yemen",
+  "Zambia", "Zimbabwe",
+  "Other",
 ];
 const EDUCATION_OPTIONS = [
   "Certificate", "Degree", "Diploma", "Masters Degree", "Doctorate Degree",
@@ -232,6 +253,13 @@ export default function Apply() {
   const [data, setData] = useState<FormData>(INITIAL);
   const [errors, setErrors] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submittedId, setSubmittedId] = useState<string | null>(null);
+  const formTopRef = useRef<HTMLDivElement>(null);
+
+  const scrollToForm = () => {
+    formTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const set = (field: keyof FormData, value: string) =>
     setData((prev) => ({ ...prev, [field]: value }));
@@ -253,58 +281,132 @@ export default function Apply() {
   const goToStep = (s: number) => {
     setErrors([]);
     setStep(s);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    scrollToForm();
+  };
+
+  const fillTestData = () => {
+    const stamp = Date.now().toString(36);
+    const rnd = Math.random().toString(36).slice(2, 8);
+    setData({
+      fullName: `Test Applicant ${rnd}`,
+      title: "Mr.",
+      titleOther: "",
+      gender: "Male",
+      dobDay: String(1 + Math.floor(Math.random() * 28)),
+      dobMonth: MONTHS[Math.floor(Math.random() * 12)],
+      mobileNumbers: "+233 20 000 0000",
+      // Gmail "+" addressing — all variations deliver to justicecobbinah19@gmail.com,
+      // so the approval/welcome emails actually arrive while still being unique
+      // per submission. Change before deploying to production.
+      email: `justicecobbinah19+wpn${stamp}${rnd}@gmail.com`,
+      postalAddress: "P.O. Box 123, Tarkwa",
+      cityTown: "Tarkwa",
+      countryOfResidence: "Ghana",
+      homeCountry: "Ghana",
+      hometown: "Tarkwa",
+      fatherHometown: "Tarkwa",
+      fatherEthnicGroup: "Wassa",
+      motherHometown: "Bogoso",
+      motherEthnicGroup: "Wassa",
+      occupation: "Software Engineer",
+      currentWorkplace: "Acme Ghana Ltd.",
+      jobTitle: "Senior Engineer",
+      educationalBackground: ["Degree"],
+      workExperience:
+        "5+ years building web applications. Previously at XYZ Corp as a developer.",
+      areasOfInterest: ["Mentorship", "Business Networking"],
+      areasOfInterestOther: "",
+      nextOfKinName: "Jane Doe",
+      nextOfKinRelationship: "Spouse",
+      nextOfKinContact: "+233 24 111 1111",
+    });
+    setErrors([]);
+    setSubmitted(false);
+    setSubmittedId(null);
+  };
+
+  const submitToApi = async () => {
+    setSubmitting(true);
+    setErrors([]);
+    try {
+      const title = data.title === "Other" ? "Other" : data.title.replace(/\.$/, "");
+      const interests = [
+        ...data.areasOfInterest.filter((v) => v !== "Other"),
+        ...(data.areasOfInterest.includes("Other") && data.areasOfInterestOther.trim()
+          ? [`Other: ${data.areasOfInterestOther.trim()}`]
+          : []),
+      ];
+      const payload = {
+        fullName: data.fullName.trim(),
+        title,
+        titleOther: data.titleOther.trim(),
+        gender: data.gender,
+        dateOfBirth: `${data.dobDay} ${data.dobMonth}`,
+        mobileNumbers: data.mobileNumbers.trim(),
+        email: data.email.trim().toLowerCase(),
+        postalAddress: data.postalAddress.trim(),
+        cityOfResidence: data.cityTown.trim(),
+        countryOfResidence: data.countryOfResidence,
+        homeCountry: data.homeCountry,
+        hometown: data.hometown.trim(),
+        fathersHometown: data.fatherHometown.trim(),
+        fathersEthnicGroup: data.fatherEthnicGroup.trim(),
+        mothersHometown: data.motherHometown.trim(),
+        mothersEthnicGroup: data.motherEthnicGroup.trim(),
+        occupation: data.occupation.trim(),
+        currentPlaceOfWork: data.currentWorkplace.trim(),
+        jobTitle: data.jobTitle.trim(),
+        educationalBackground: data.educationalBackground,
+        workExperience: data.workExperience.trim(),
+        areasOfInterest: interests,
+        nextOfKin: {
+          fullName: data.nextOfKinName.trim(),
+          relationship: data.nextOfKinRelationship,
+          contact: data.nextOfKinContact.trim(),
+        },
+      };
+      const out = await api.post<{ id: string }>("/applications", payload);
+      setSubmittedId(out.id);
+      setSubmitted(true);
+      scrollToForm();
+    } catch (err) {
+      const msg =
+        err instanceof ApiError
+          ? err.message
+          : "We couldn't submit your application. Please try again.";
+      setErrors([msg]);
+      scrollToForm();
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const next = () => {
     // Review step submits directly
     if (step === STEPS.length - 1) {
-      setSubmitted(true);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      submitToApi();
       return;
     }
     const errs = validate(step, data);
     if (errs.length) {
       setErrors(errs);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      scrollToForm();
       return;
     }
     setErrors([]);
     setStep((s) => s + 1);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setSubmitted(false);
+    scrollToForm();
   };
 
   const back = () => {
     setErrors([]);
     setStep((s) => s - 1);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setSubmitted(false);
+    scrollToForm();
   };
 
-  if (submitted) {
-    return (
-      <main className="min-h-screen bg-cream">
-        <Navbar />
-        <div className="flex min-h-screen items-center justify-center px-6 pb-16 pt-32">
-          <div className="w-full max-w-lg text-center">
-            <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-green-900">
-              <svg className="h-10 w-10 text-gold-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <h1 className="font-display text-3xl font-semibold text-green-950 sm:text-4xl">
-              Application Submitted
-            </h1>
-            <p className="mx-auto mt-4 max-w-md text-[17px] leading-relaxed text-green-900/70">
-              Thank you for taking the time to complete this form. The WPN
-              Executive Council will review your application within 30 days and
-              be in touch.
-            </p>
-          </div>
-        </div>
-        <Footer />
-      </main>
-    );
-  }
+  const isDev = process.env.NODE_ENV !== "production";
 
   return (
     <main className="min-h-screen bg-cream">
@@ -322,37 +424,53 @@ export default function Apply() {
         </div>
       </section>
 
+      {/* Scroll target — clicking Next/Back scrolls here so the form is in view */}
+      <div ref={formTopRef} aria-hidden className="scroll-mt-20" />
+
       {/* Progress bar */}
       <div className="sticky top-18 z-40 border-b border-green-900/10 bg-white shadow-sm">
         <div className="mx-auto max-w-3xl px-6 py-4">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
-            {STEPS.map((s, i) => (
-              <div key={s} className="flex flex-none items-center gap-2">
-                <div
-                  className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all ${
-                    i < step
-                      ? "bg-green-900 text-gold-400"
-                      : i === step
-                      ? "bg-gold-500 text-green-950"
-                      : "bg-green-900/10 text-green-900/40"
-                  }`}
-                >
-                  {i < step ? (
-                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  ) : (
-                    i + 1
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-green-900/50">
+                Step {step + 1} of {STEPS.length}
+              </div>
+              <div className="mt-0.5 truncate text-sm font-semibold text-green-950">
+                {STEPS[step]}
+              </div>
+            </div>
+            <div className="flex flex-none items-center gap-1.5">
+              {STEPS.map((s, i) => (
+                <div key={s} className="flex items-center gap-1.5">
+                  <div
+                    className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold transition-all ${
+                      i < step
+                        ? "bg-green-900 text-gold-400"
+                        : i === step
+                        ? "bg-gold-500 text-green-950 ring-2 ring-gold-500/30 ring-offset-1"
+                        : "bg-green-900/10 text-green-900/40"
+                    }`}
+                    aria-label={s}
+                    title={s}
+                  >
+                    {i < step ? (
+                      <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    ) : (
+                      i + 1
+                    )}
+                  </div>
+                  {i < STEPS.length - 1 && (
+                    <div
+                      className={`h-px w-3 flex-none sm:w-5 ${
+                        i < step ? "bg-green-900" : "bg-green-900/15"
+                      }`}
+                    />
                   )}
                 </div>
-                <span className={`whitespace-nowrap text-xs font-medium ${i === step ? "text-green-950" : "text-green-900/50"}`}>
-                  {s}
-                </span>
-                {i < STEPS.length - 1 && (
-                  <div className={`h-px w-6 flex-none ${i < step ? "bg-green-900" : "bg-green-900/15"}`} />
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
           <div className="mt-3 h-1 rounded-full bg-green-900/10">
             <div
@@ -365,6 +483,57 @@ export default function Apply() {
 
       {/* Form body */}
       <div className="mx-auto max-w-3xl px-6 py-12">
+        {/* Dev-only autofill — never shipped to production */}
+        {isDev && (
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-amber-300 bg-amber-50 px-4 py-3 text-sm">
+            <div className="flex items-center gap-2 text-amber-900">
+              <span className="rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-900">
+                Dev
+              </span>
+              <span>Fast-fill the form with random test data.</span>
+            </div>
+            <button
+              type="button"
+              onClick={fillTestData}
+              className="rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-500"
+            >
+              Fill Test Data
+            </button>
+          </div>
+        )}
+
+        {submitted && submittedId && (
+          <div className="mb-6 flex items-start justify-between gap-4 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3">
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-emerald-600 text-white">
+                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+              <div>
+                <div className="text-sm font-semibold text-emerald-900">
+                  Application submitted
+                </div>
+                <div className="mt-0.5 text-xs text-emerald-900/75">
+                  Reference: <span className="font-mono">{submittedId}</span>
+                  {" · "}
+                  The Executive Council reviews within 30 days.
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setSubmitted(false);
+                setSubmittedId(null);
+              }}
+              className="text-xs font-semibold text-emerald-800 hover:text-emerald-900"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {step < STEPS.length - 1 && (
           <p className="mb-8 text-sm text-green-900/60">
             <span className="text-red-500">*</span> Indicates required question
@@ -729,9 +898,21 @@ export default function Apply() {
           )}
           <button
             onClick={next}
-            className="rounded-full bg-gold-500 px-7 py-3 text-sm font-semibold text-green-950 shadow-lg shadow-gold-500/20 transition-all hover:-translate-y-0.5 hover:bg-gold-400"
+            disabled={submitting}
+            className="flex items-center gap-2 rounded-full bg-gold-500 px-7 py-3 text-sm font-semibold text-green-950 shadow-lg shadow-gold-500/20 transition-all hover:-translate-y-0.5 hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
           >
-            {step === STEPS.length - 1 ? "Submit Application" : "Next"}
+            {step === STEPS.length - 1 ? (
+              submitting ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-green-950/30 border-t-green-950" />
+                  Submitting…
+                </>
+              ) : (
+                "Submit Application"
+              )
+            ) : (
+              "Next"
+            )}
           </button>
         </div>
       </div>
