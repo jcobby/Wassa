@@ -5,44 +5,28 @@ import Reveal from "@/components/Reveal";
 
 const committees = [
   {
-    name: "Finance and Audit",
-    body: "Stewards WPN's funds, signatories, and reporting. Works with the independent auditor and reviews the annual budget before it reaches the General Assembly.",
+    name: "Advisory Services, Programmes & Community Development",
+    body: "Identifies, scopes, and delivers advisory programmes and community projects across Wassa — from infrastructure to welfare initiatives — in partnership with traditional authorities and local government.",
   },
   {
-    name: "Projects and Community Development",
-    body: "Identifies, scopes, and delivers community projects across Wassa — from infrastructure to community welfare initiatives — in partnership with traditional authorities and local government.",
+    name: "Membership, Chapters & Welfare",
+    body: "Oversees member recruitment, onboarding, and retention. Coordinates regional, district, and international chapters, and ensures the welfare of WPN members at home and in the diaspora.",
   },
   {
-    name: "Education, Career Development & Scholarship",
-    body: "Runs scholarship schemes, mentorship pipelines, and career programmes for Wassa students and young professionals.",
+    name: "Finance & Audit",
+    body: "Stewards WPN's funds, signatories, and financial reporting. Works with the independent auditor and reviews the annual budget before it reaches the General Assembly.",
   },
   {
-    name: "Health",
-    body: "Advances Wassa health outcomes through outreach, partnerships with health facilities, and policy advice to district assemblies and traditional authorities.",
+    name: "Legal, Compliance, Advocacy & Governance",
+    body: "Ensures WPN operates within the Companies Act, 2019 (Act 992) and applicable law. Advises on contracts and risk, and advocates for Wassa's fair share of national development resources.",
   },
   {
-    name: "Agriculture and Environment",
-    body: "Supports sustainable agriculture, environmental stewardship of Wassa lands, and the equitable management of natural resources.",
+    name: "Communication & Media Relations",
+    body: "Manages all internal and external communications, social media, publications, and media relations. Promotes the image of WPN and keeps the membership and public informed.",
   },
   {
-    name: "Research and Policy",
-    body: "Commissions evidence and translates it into policy recommendations on issues affecting Wassa — feeding directly into the Advocacy Committee.",
-  },
-  {
-    name: "Advocacy and Partnership",
-    body: "Engages government, donors, and stakeholders on Wassa's fair share of national resources; builds partnerships that advance WPN's objectives.",
-  },
-  {
-    name: "Business and Investment",
-    body: "Creates opportunities for partnerships, investment, and community-facing enterprise for the benefit of Wassa communities.",
-  },
-  {
-    name: "WPN Chapters",
-    body: "Coordinates the regional, district, and international chapters — supports establishment, governance, reporting, and inter-chapter collaboration.",
-  },
-  {
-    name: "Legal and Compliance",
-    body: "Ensures WPN operates within the Companies Act, 2019 (Act 992) and all applicable Ghanaian law, and advises on contracts, governance, and risk.",
+    name: "Partnership & Funding",
+    body: "Builds strategic partnerships with government, donors, and development organisations. Identifies and secures funding streams that advance WPN's objectives and community impact.",
   },
 ];
 
@@ -68,7 +52,7 @@ export default function Committees() {
             className="animate-fade-up mt-5 max-w-2xl text-lg text-cream/70"
             style={{ animationDelay: "0.2s" }}
           >
-            Ten standing committees carry WPN's mandate from boardroom to
+            Six standing committees carry WPN's mandate from boardroom to
             community. Each is chaired by a Full Member appointed by the
             Executive Council and reports quarterly.
           </p>
@@ -81,7 +65,7 @@ export default function Committees() {
           <div className="flex items-center gap-3">
             <span className="h-px w-10 bg-gold-500" />
             <span className="text-xs font-semibold uppercase tracking-wider text-gold-600">
-              The Ten
+              The Six
             </span>
           </div>
           <h2 className="mt-3 font-display text-3xl font-semibold text-green-950 sm:text-4xl">
