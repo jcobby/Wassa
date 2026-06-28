@@ -15,6 +15,8 @@ type LoginResponse = {
 };
 
 function LoginContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [form, setForm] = useState({ email: "", password: "", remember: true });
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
