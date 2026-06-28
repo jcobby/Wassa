@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-export default function Login() {
+function LoginContent() {
   const [form, setForm] = useState({ email: "", password: "", remember: true });
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -210,5 +210,13 @@ export default function Login() {
 
       <Footer />
     </main>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
   );
 }
