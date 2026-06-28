@@ -2,81 +2,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
-
-const executives = [
-  {
-    name: "Mr Justice Cobbinah (JJY)",
-    role: "President",
-    summary:
-      "Head of the organisation. Provides strategic leadership, presides over all meetings, represents WPN at official functions, signs official documents, and serves as principal spokesperson.",
-  },
-  {
-    name: "Mr Philip Eshun",
-    role: "Vice President",
-    summary:
-      "Acts as President in their absence. Holds a defined portfolio assigned by the Executive Council — overseeing development programmes and committee coordination — and leads at least one standing committee.",
-  },
-  {
-    name: "Victoria Krakue",
-    role: "Second Vice President",
-    summary:
-      "Supports the Vice President and assumes executive responsibilities as assigned by the Council. Ensures continuity of leadership across all WPN programmes.",
-  },
-  {
-    name: "Israel Ackah Esq",
-    role: "General Secretary",
-    summary:
-      "Responsible for all administration. Keeps and circulates minutes, handles official correspondence, maintains the membership register, gives notice of meetings, and oversees safe storage of WPN records.",
-  },
-  {
-    name: "Mr Onyameba Atta-Kesson",
-    role: "Deputy General Secretary",
-    summary:
-      "Supports and deputises for the General Secretary, taking responsibility for specific administrative portfolios as assigned by the Executive Council.",
-  },
-  {
-    name: "Mr David Agyefi-Mensah",
-    role: "Financial Secretary",
-    summary:
-      "Collects and records all dues, levies, and income. Issues receipts, reconciles records with the Treasurer monthly, and reports arrears to the Executive Council.",
-  },
-  {
-    name: "Mr Kwesi Pimpah Nkrumah",
-    role: "Treasurer",
-    summary:
-      "Oversees financial management. Co-signatory on all WPN accounts, ensures proper custody of funds, and presents quarterly financial reports to the Executive Council and at each AGM.",
-  },
-  {
-    name: "Professor Stephen Agyefi-Mensah",
-    role: "Organising Secretary",
-    summary:
-      "Coordinates and plans all WPN meetings, events, and programmes. Oversees logistics and mobilisation and maintains the organisation's activity calendar.",
-  },
-  {
-    name: "Mr William Abakah",
-    role: "Youth Affairs Director",
-    summary:
-      "Champions the interests of young members and Student Affiliates. Coordinates mentorship, scholarship, and youth development programmes, and liaises with WASU and WAYA.",
-  },
-  {
-    name: "Kukua Borden Esq",
-    role: "Women Affairs Director",
-    summary:
-      "Champions the interests and participation of women members. Coordinates programmes for economic empowerment and professional development of women in Wassa, and advises the Council on gender mainstreaming.",
-  },
-  {
-    name: "Dr Yaw Anokye Frimpong Esq",
-    role: "Corporate Affairs Director",
-    summary:
-      "Manages all external and internal communications. Oversees social media and publications, handles media relations, corporate partnerships, and promotes the image of WPN.",
-  },
-  {
-    name: "Dr Anthony Ntsiful",
-    role: "Council of Elders Representative",
-    summary:
-      "Brings the voice and wisdom of the Council of Elders into the Executive Council, ensuring decisions are grounded in Wassa tradition, values, and long-term community interest.",
-  },
-];
+import { executives } from "@/lib/wpn-data";
 
 export default function Executives() {
   return (
@@ -218,7 +144,7 @@ export default function Executives() {
       <section className="bg-cream py-24">
         <div className="mx-auto max-w-5xl px-6">
           <Reveal>
-            <div className="relative overflow-hidden rounded-[2rem] bg-linear-to-br from-green-800 to-green-950 px-8 py-16 text-center sm:px-16">
+            <div className="relative overflow-hidden rounded-4xl bg-linear-to-br from-green-800 to-green-950 px-8 py-16 text-center sm:px-16">
               <div className="pointer-events-none absolute -left-16 -bottom-16 h-64 w-64 rounded-full bg-gold-500/20 blur-2xl" />
               <h2 className="font-display text-3xl font-semibold text-cream sm:text-4xl">
                 Interested in serving?

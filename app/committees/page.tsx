@@ -2,33 +2,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
-
-const committees = [
-  {
-    name: "Advisory Services, Programmes & Community Development",
-    body: "Identifies, scopes, and delivers advisory programmes and community projects across Wassa — from infrastructure to welfare initiatives — in partnership with traditional authorities and local government.",
-  },
-  {
-    name: "Membership, Chapters & Welfare",
-    body: "Oversees member recruitment, onboarding, and retention. Coordinates regional, district, and international chapters, and ensures the welfare of WPN members at home and in the diaspora.",
-  },
-  {
-    name: "Finance & Audit",
-    body: "Stewards WPN's funds, signatories, and financial reporting. Works with the independent auditor and reviews the annual budget before it reaches the General Assembly.",
-  },
-  {
-    name: "Legal, Compliance, Advocacy & Governance",
-    body: "Ensures WPN operates within the Companies Act, 2019 (Act 992) and applicable law. Advises on contracts and risk, and advocates for Wassa's fair share of national development resources.",
-  },
-  {
-    name: "Communication & Media Relations",
-    body: "Manages all internal and external communications, social media, publications, and media relations. Promotes the image of WPN and keeps the membership and public informed.",
-  },
-  {
-    name: "Partnership & Funding",
-    body: "Builds strategic partnerships with government, donors, and development organisations. Identifies and secures funding streams that advance WPN's objectives and community impact.",
-  },
-];
+import { committees } from "@/lib/wpn-data";
 
 export default function Committees() {
   return (
