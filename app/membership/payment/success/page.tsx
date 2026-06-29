@@ -1,13 +1,12 @@
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { CredentialBox } from "./CredentialBox";
 
 type FulfillResult = {
   status: "success" | "failed" | "pending";
   memberId?: string;
   email?: string;
-  generatedPassword?: string;
+  setPasswordToken?: string;
   alreadyFulfilled?: boolean;
 };
 
@@ -137,33 +136,45 @@ export default async function PaymentSuccessPage({
         </p>
       </div>
 
-      {out.data.generatedPassword && out.data.email ? (
-        <CredentialBox
-          email={out.data.email}
-          password={out.data.generatedPassword}
-        />
+      {out.data.setPasswordToken ? (
+        <div className="mt-8 rounded-2xl border border-green-900/10 bg-white p-6 text-center">
+          <h2 className="font-display text-lg font-semibold text-green-950">
+            One last step
+          </h2>
+          <p className="mt-2 text-sm text-green-900/70">
+            Choose a password to finish setting up your account. We&apos;ve also
+            emailed this link to{" "}
+            <span className="font-semibold">{out.data.email ?? "your inbox"}</span>.
+          </p>
+          <Link
+            href={`/set-password/${out.data.setPasswordToken}`}
+            className="mt-5 inline-flex rounded-full bg-gold-500 px-8 py-3.5 font-semibold text-green-950 transition-all hover:-translate-y-0.5 hover:bg-gold-400"
+          >
+            Set Your Password
+          </Link>
+        </div>
       ) : (
         <div className="mt-8 rounded-2xl border border-green-900/10 bg-white p-6 text-center">
           <p className="text-sm text-green-900/70">
-            We've emailed your login credentials to{" "}
+            We&apos;ve emailed a link to set your password to{" "}
             <span className="font-semibold">{out.data.email ?? "your inbox"}</span>.
+            Open it to choose a password, then sign in.
           </p>
           {out.data.alreadyFulfilled && (
             <p className="mt-2 text-xs text-green-900/55">
               (This payment was already processed earlier.)
             </p>
           )}
+          <div className="mt-5">
+            <Link
+              href="/login"
+              className="inline-flex rounded-full bg-gold-500 px-8 py-3.5 font-semibold text-green-950 transition-all hover:-translate-y-0.5 hover:bg-gold-400"
+            >
+              Go to Sign In
+            </Link>
+          </div>
         </div>
       )}
-
-      <div className="mt-8 text-center">
-        <Link
-          href="/login"
-          className="inline-flex rounded-full bg-gold-500 px-8 py-3.5 font-semibold text-green-950 transition-all hover:-translate-y-0.5 hover:bg-gold-400"
-        >
-          Sign In Now
-        </Link>
-      </div>
     </Shell>
   );
 }

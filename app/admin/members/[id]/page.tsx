@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { adminFetch } from "@/lib/adminAuth";
 import { MemberActions } from "./MemberActions";
+import { ResendEmail } from "./ResendEmail";
 
 type MemberDetail = {
   _id: string;
@@ -29,7 +30,8 @@ type MemberDetail = {
   areasOfInterest: string[];
   nextOfKin: { fullName: string; relationship: string; contact: string };
   role: "member" | "admin";
-  status: "active" | "suspended" | "terminated";
+  status: "active" | "suspended" | "terminated" | "pending_payment";
+  hasPassword?: boolean;
   joinedAt: string;
   lastLoginAt?: string;
 };
@@ -107,7 +109,18 @@ export default async function MemberDetailPage({
         </Card>
       </div>
 
-      {m.role !== "admin" && <MemberActions id={id} status={m.status} />}
+      {m.role !== "admin" && m.status === "pending_payment" && (
+        <ResendEmail id={id} mode="payment" />
+      )}
+      {m.role !== "admin" && m.status === "active" && !m.hasPassword && (
+        <ResendEmail id={id} mode="set_password" />
+      )}
+      {m.role !== "admin" &&
+        (m.status === "active" ||
+          m.status === "suspended" ||
+          m.status === "terminated") && (
+          <MemberActions id={id} status={m.status} />
+        )}
     </div>
   );
 }
@@ -150,6 +163,7 @@ function StatusBadge({ status }: { status: string }) {
     active: "bg-emerald-100 text-emerald-800",
     suspended: "bg-amber-100 text-amber-800",
     terminated: "bg-slate-200 text-slate-700",
+    pending_payment: "bg-blue-100 text-blue-800",
   };
   return (
     <span
@@ -157,7 +171,7 @@ function StatusBadge({ status }: { status: string }) {
         colors[status] ?? "bg-slate-100 text-slate-700"
       }`}
     >
-      {status}
+      {status.replace(/_/g, " ")}
     </span>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -22,6 +22,16 @@ function LoginContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Already signed in? Skip the form — send them to their area.
+  useEffect(() => {
+    api
+      .get<LoginResponse>("/auth/me")
+      .then((m) => router.replace(m.role === "admin" ? "/admin" : "/dashboard"))
+      .catch(() => {
+        // Not signed in — stay on the login page.
+      });
+  }, [router]);
+
   const submit = async () => {
     setError(null);
     if (!form.email || !form.password) {
@@ -34,7 +44,12 @@ function LoginContent() {
         email: form.email.trim().toLowerCase(),
         password: form.password,
       });
-      const next = searchParams.get("next");
+      const rawNext = searchParams.get("next");
+      // Only allow internal paths — blocks open-redirect via a crafted ?next=.
+      const next =
+        rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")
+          ? rawNext
+          : null;
       const fallback = me.role === "admin" ? "/admin" : "/dashboard";
       router.push(next || fallback);
     } catch (err) {
@@ -138,7 +153,7 @@ function LoginContent() {
                       Password
                     </label>
                     <Link
-                      href="#"
+                      href="/forgot-password"
                       className="text-xs font-medium text-green-700 hover:text-gold-600"
                     >
                       Forgot password?
@@ -212,7 +227,7 @@ function LoginContent() {
                 <p className="text-center text-sm text-green-900/70">
                   Not yet a member?{" "}
                   <Link
-                    href="/membership"
+                    href="/membership/apply"
                     className="font-semibold text-green-800 hover:text-gold-600"
                   >
                     Apply for membership

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { adminFetch } from "@/lib/adminAuth";
 import { ReviewActions } from "./ReviewActions";
+import { ResendVerification } from "./ResendVerification";
 
 type AppDetail = {
   _id: string;
@@ -12,6 +13,7 @@ type AppDetail = {
   dateOfBirth: string;
   mobileNumbers: string;
   email: string;
+  emailVerified?: boolean;
   postalAddress: string;
   cityOfResidence: string;
   countryOfResidence: string;
@@ -59,7 +61,18 @@ export default async function ApplicationDetail({
       <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold">{app.fullName}</h1>
-          <p className="mt-1 text-sm text-slate-600">{app.email}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <p className="text-sm text-slate-600">{app.email}</p>
+            {app.emailVerified ? (
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-800">
+                Email verified
+              </span>
+            ) : (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-800">
+                Email not verified
+              </span>
+            )}
+          </div>
         </div>
         <StatusBadge status={app.status} />
       </div>
@@ -110,7 +123,25 @@ export default async function ApplicationDetail({
         </Card>
       </div>
 
-      {app.status === "pending" && <ReviewActions id={id} />}
+      {app.status === "pending" && !app.emailVerified && (
+        <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+          <div className="text-sm font-semibold text-amber-900">
+            Waiting on email confirmation
+          </div>
+          <p className="mt-1 text-sm text-amber-800/80">
+            This applicant hasn&apos;t clicked the confirmation link we emailed
+            them, so the application isn&apos;t in the review queue yet and
+            can&apos;t be approved. Once they confirm, it moves to{" "}
+            <span className="font-semibold">Pending</span> and you can review it.
+            Resend the link if they didn&apos;t receive it.
+          </p>
+          <ResendVerification id={id} />
+        </div>
+      )}
+
+      {app.status === "pending" && app.emailVerified && (
+        <ReviewActions id={id} />
+      )}
 
       {app.status !== "pending" && (
         <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6">

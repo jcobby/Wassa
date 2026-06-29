@@ -3,7 +3,35 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { nav, site } from "@/lib/site";
+import { api } from "@/lib/api";
+
+type Me = {
+  id: string;
+  email: string;
+  role: "member" | "admin";
+  fullName: string;
+  status: string;
+};
+
+// Links only members should see — hidden from the nav when logged out. (The
+// pages themselves still redirect; this just keeps the menu honest.)
+const GATED_HREFS = new Set(["/executives", "/committees"]);
+// Links only non-members should see — hidden once you're signed in (you can't
+// apply again if you're already a member).
+const GUEST_ONLY_HREFS = new Set(["/membership/apply"]);
+
+function firstName(full: string): string {
+  return full.trim().split(/\s+/)[0] || full;
+}
+
+function initials(full: string): string {
+  const parts = full.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -17,8 +45,54 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const router = useRouter();
+  const [me, setMe] = useState<Me | null>(null);
+  const [confirmOut, setConfirmOut] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    api
+      .get<Me>("/auth/me")
+      .then((m) => active && setMe(m))
+      .catch(() => active && setMe(null));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const signOut = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch {
+      // Clear local state regardless of the network result.
+    }
+    setMe(null);
+    setOpen(false);
+    setConfirmOut(false);
+    router.push("/");
+    router.refresh();
+  };
+
+  const dashboardHref = me?.role === "admin" ? "/admin" : "/dashboard";
+
+  // Show members-only links only when signed in, and guest-only links only when
+  // signed out.
+  const visibleNav = nav.map((item) =>
+    item.children
+      ? {
+          ...item,
+          children: item.children.filter((c) => {
+            if (GATED_HREFS.has(c.href)) return !!me;
+            if (GUEST_ONLY_HREFS.has(c.href)) return !me;
+            return true;
+          }),
+        }
+      : item
+  );
+
   return (
-    <header
+    <>
+      <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
         scrolled
           ? "bg-green-950/95 backdrop-blur-md shadow-lg shadow-black/20"
@@ -47,7 +121,7 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <ul className="hidden items-center gap-1 lg:flex">
-          {nav.map((item) => (
+          {visibleNav.map((item) => (
             <li key={item.label} className="group relative">
               {item.children ? (
                 <>
@@ -92,13 +166,36 @@ export default function Navbar() {
           ))}
         </ul>
 
-        <div className="hidden lg:block">
-          <Link
-            href="/login"
-            className="rounded-full bg-gold-500 px-6 py-2.5 text-sm font-semibold text-green-950 shadow-lg shadow-gold-500/20 transition-all hover:bg-gold-400 hover:shadow-gold-400/30"
-          >
-            Member Login
-          </Link>
+        <div className="hidden items-center gap-3 lg:flex">
+          {me ? (
+            <>
+              <Link
+                href={dashboardHref}
+                title={`Signed in as ${me.fullName} — go to your dashboard`}
+                className="group flex items-center gap-2.5 rounded-full border border-cream/15 bg-green-900/40 py-1.5 pl-1.5 pr-4 transition-colors hover:border-gold-400/40"
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gold-500 text-xs font-bold text-green-950">
+                  {initials(me.fullName)}
+                </span>
+                <span className="text-sm font-medium text-cream/90 transition-colors group-hover:text-gold-400">
+                  {firstName(me.fullName)}
+                </span>
+              </Link>
+              <button
+                onClick={() => setConfirmOut(true)}
+                className="rounded-full px-4 py-2.5 text-sm font-medium text-cream/80 transition-colors hover:text-gold-400"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="rounded-full bg-gold-500 px-6 py-2.5 text-sm font-semibold text-green-950 shadow-lg shadow-gold-500/20 transition-all hover:bg-gold-400 hover:shadow-gold-400/30"
+            >
+              Member Login
+            </Link>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -134,7 +231,7 @@ export default function Navbar() {
         }`}
       >
         <ul className="space-y-1 px-6 pb-8 pt-2">
-          {nav.map((item) => (
+          {visibleNav.map((item) => (
             <li key={item.label}>
               {item.children ? (
                 <>
@@ -186,17 +283,87 @@ export default function Navbar() {
               )}
             </li>
           ))}
-          <li className="pt-3">
-            <Link
-              href="/login"
-              onClick={() => setOpen(false)}
-              className="block rounded-full bg-gold-500 px-6 py-3 text-center font-semibold text-green-950"
-            >
-              Member Login
-            </Link>
+          <li className="space-y-2 pt-3">
+            {me ? (
+              <>
+                <div className="flex items-center gap-3 px-1 pb-2">
+                  <span className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-gold-500 text-sm font-bold text-green-950">
+                    {initials(me.fullName)}
+                  </span>
+                  <div className="min-w-0 leading-tight">
+                    <div className="truncate text-sm font-semibold text-cream">
+                      {me.fullName}
+                    </div>
+                    <div className="truncate text-xs text-cream/60">
+                      {me.email}
+                    </div>
+                  </div>
+                </div>
+                <Link
+                  href={dashboardHref}
+                  onClick={() => setOpen(false)}
+                  className="block rounded-full bg-gold-500 px-6 py-3 text-center font-semibold text-green-950"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    setConfirmOut(true);
+                  }}
+                  className="block w-full rounded-full border border-cream/25 px-6 py-3 text-center font-semibold text-cream"
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setOpen(false)}
+                className="block rounded-full bg-gold-500 px-6 py-3 text-center font-semibold text-green-950"
+              >
+                Member Login
+              </Link>
+            )}
           </li>
         </ul>
       </div>
     </header>
+
+      {confirmOut && (
+        <div
+          className="fixed inset-0 z-60 flex items-center justify-center px-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setConfirmOut(false)}
+          />
+          <div className="relative w-full max-w-sm rounded-2xl bg-cream p-6 shadow-2xl shadow-black/40">
+            <h2 className="font-display text-xl font-semibold text-green-950">
+              Sign out?
+            </h2>
+            <p className="mt-2 text-sm text-green-900/70">
+              You&apos;ll need to sign in again to access your member area.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmOut(false)}
+                className="rounded-full border border-green-900/20 px-5 py-2.5 text-sm font-semibold text-green-900 transition-colors hover:bg-green-900/5"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={signOut}
+                className="rounded-full bg-green-900 px-5 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-green-800"
+              >
+                Sign out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

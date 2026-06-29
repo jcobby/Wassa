@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
+import { getMe } from "@/lib/adminAuth";
 
 const executives = [
   {
@@ -53,16 +55,34 @@ const executives = [
       "Coordinates and plans all WPN meetings, events, and programmes. Oversees logistics and mobilisation and maintains the organisation's activity calendar.",
   },
   {
+    name: "To be appointed",
+    role: "Assistant Organising Secretary",
+    summary:
+      "Supports the Organising Secretary in planning meetings, events, and programmes, overseeing logistics and mobilisation, and deputises as assigned by the Executive Council.",
+  },
+  {
     name: "Mr William Abakah",
     role: "Youth Affairs Director",
     summary:
       "Champions the interests of young members and Student Affiliates. Coordinates mentorship, scholarship, and youth development programmes, and liaises with WASU and WAYA.",
   },
   {
+    name: "To be appointed",
+    role: "Assistant Youth Affairs Director",
+    summary:
+      "Supports the Youth Affairs Director in coordinating mentorship, scholarship, and youth development programmes for young members and Student Affiliates, deputising as assigned.",
+  },
+  {
     name: "Kukua Borden Esq",
     role: "Women Affairs Director",
     summary:
       "Champions the interests and participation of women members. Coordinates programmes for economic empowerment and professional development of women in Wassa, and advises the Council on gender mainstreaming.",
+  },
+  {
+    name: "To be appointed",
+    role: "Assistant Women Affairs Director",
+    summary:
+      "Supports the Women Affairs Director in coordinating programmes for the empowerment and professional development of women members, and deputises as assigned.",
   },
   {
     name: "Dr Yaw Anokye Frimpong Esq",
@@ -78,7 +98,10 @@ const executives = [
   },
 ];
 
-export default function Executives() {
+export default async function Executives() {
+  const me = await getMe();
+  if (!me) redirect("/login?next=/executives");
+
   return (
     <main className="bg-cream">
       <Navbar />
@@ -113,8 +136,8 @@ export default function Executives() {
             {[
               ["4", "Year Term"],
               ["2", "Term Limit"],
-              ["12", "Council Members"],
-              ["2025", "Inauguration Year"],
+              ["15", "Council Members"],
+              ["2026", "Inauguration Year"],
             ].map(([n, l]) => (
               <div key={l} className="bg-white px-6 py-7 text-center sm:text-left">
                 <div className="font-display text-3xl font-semibold text-green-950">{n}</div>
@@ -135,7 +158,7 @@ export default function Executives() {
             </span>
           </div>
           <h2 className="mt-3 font-display text-3xl font-semibold text-green-950 sm:text-4xl">
-            Council members &amp; their roles
+            Council members &amp; their bio data
           </h2>
           <p className="mt-4 text-[17px] leading-relaxed text-green-900/70">
             All officers take the Oath of Office, administered by the President

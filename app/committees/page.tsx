@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
+import { getMe } from "@/lib/adminAuth";
 
 const committees = [
   {
@@ -30,7 +32,10 @@ const committees = [
   },
 ];
 
-export default function Committees() {
+export default async function Committees() {
+  const me = await getMe();
+  if (!me) redirect("/login?next=/committees");
+
   return (
     <main className="bg-cream">
       <Navbar />

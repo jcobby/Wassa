@@ -60,14 +60,13 @@ export default function SetPasswordPage({
           <div className="w-full max-w-md">
             <div className="rounded-3xl border border-cream/10 bg-cream p-8 shadow-2xl shadow-black/30 sm:p-10">
               <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">
-                New Member
+                Member Account
               </div>
               <h1 className="mt-3 font-display text-3xl font-semibold text-green-950">
                 Set your password
               </h1>
               <p className="mt-2 text-sm text-green-900/65">
-                Welcome to WPN. Choose a password to sign in to your member
-                account.
+                Choose a password to access your WPN member account.
               </p>
 
               {done ? (

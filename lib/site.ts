@@ -5,7 +5,7 @@ export const site = {
   name: "Wassa Professionals Network",
   short: "WPN",
   mantra: "Help a Wassa to Help Wassa",
-  email: "info@wassaprofessionals.org", // [PLACEHOLDER]
+  email: "admin@wassaprosnetwork.org",
   phones: ["(+233) 000 000 000", "(+233) 000 000 000"], // [PLACEHOLDER]
   address: {
     line1: "P.O. Box [PLACEHOLDER], Western Region", // [PLACEHOLDER]

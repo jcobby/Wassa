@@ -5,6 +5,7 @@ type AppRow = {
   id: string;
   fullName: string;
   email: string;
+  emailVerified?: boolean;
   status: "pending" | "approved" | "rejected";
   submittedAt: string;
   occupation?: string;
@@ -13,6 +14,7 @@ type AppRow = {
 
 const TABS = [
   { key: "pending", label: "Pending" },
+  { key: "unconfirmed", label: "Unconfirmed" },
   { key: "approved", label: "Approved" },
   { key: "rejected", label: "Rejected" },
 ] as const;
@@ -82,7 +84,20 @@ export default async function ApplicationsPage({
                   <td className="px-6 py-4 font-medium text-slate-900">
                     {r.fullName}
                   </td>
-                  <td className="px-6 py-4 text-slate-600">{r.email}</td>
+                  <td className="px-6 py-4 text-slate-600">
+                    <div className="flex items-center gap-2">
+                      <span>{r.email}</span>
+                      {r.emailVerified ? (
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-800">
+                          Verified
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-800">
+                          Unverified
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-6 py-4 text-slate-600">
                     {r.occupation ?? "—"}
                   </td>

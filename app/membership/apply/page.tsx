@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { api, ApiError } from "@/lib/api";
@@ -255,6 +256,8 @@ export default function Apply() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submittedId, setSubmittedId] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState(false);
+  const [verifyUrl, setVerifyUrl] = useState<string | null>(null);
   const formTopRef = useRef<HTMLDivElement>(null);
 
   const scrollToForm = () => {
@@ -323,6 +326,8 @@ export default function Apply() {
     setErrors([]);
     setSubmitted(false);
     setSubmittedId(null);
+    setVerifyUrl(null);
+    setEmailSent(false);
   };
 
   const submitToApi = async () => {
@@ -365,8 +370,14 @@ export default function Apply() {
           contact: data.nextOfKinContact.trim(),
         },
       };
-      const out = await api.post<{ id: string }>("/applications", payload);
+      const out = await api.post<{
+        id: string;
+        emailSent?: boolean;
+        verifyUrl?: string;
+      }>("/applications", payload);
       setSubmittedId(out.id);
+      setEmailSent(Boolean(out.emailSent));
+      setVerifyUrl(out.verifyUrl ?? null);
       setSubmitted(true);
       scrollToForm();
     } catch (err) {
@@ -407,6 +418,197 @@ export default function Apply() {
   };
 
   const isDev = process.env.NODE_ENV !== "production";
+
+  // Full success page after submit
+  if (submitted) {
+    const submitAnotherTest = () => {
+      setSubmitted(false);
+      setSubmittedId(null);
+      fillTestData();
+      setStep(STEPS.length - 1); // jump straight to Review so one more click submits
+    };
+
+    return (
+      <main className="min-h-screen bg-cream">
+        <Navbar />
+
+        <section className="relative overflow-hidden bg-green-950 pt-28 pb-10 texture-grain">
+          <div className="pointer-events-none absolute -right-32 -top-24 h-96 w-96 rounded-full bg-green-700/30 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-32 -left-24 h-96 w-96 rounded-full bg-gold-500/15 blur-3xl" />
+
+          <div className="mx-auto max-w-2xl px-6 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gold-500 text-green-950">
+              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M5 13l4 4L19 7"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+
+            <div className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-gold-400">
+              Application Received
+            </div>
+            <h1 className="mt-2 font-display text-3xl font-semibold leading-tight text-cream sm:text-4xl">
+              Thank you &mdash; <span className="italic text-gold-400">one quick step left</span>
+            </h1>
+            <p className="mx-auto mt-3 max-w-md text-[15px] leading-relaxed text-cream/75">
+              Confirm your email below to begin the review. The Executive Council
+              responds within thirty (30) days (Article 6.3) &mdash; and if
+              approved, sends a link to complete payment.
+            </p>
+
+            {submittedId && (
+              <div className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full border border-cream/15 bg-green-900/40 px-4 py-2 text-xs text-cream/70">
+                <span className="uppercase tracking-wider">Reference</span>
+                <span className="font-mono text-cream">{submittedId}</span>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-3xl space-y-6 px-6 pt-8 pb-16">
+          {/* Confirm-email — the immediate next action, made prominent */}
+          <div className="rounded-3xl border-2 border-gold-400/50 bg-white p-6 sm:p-7">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+              <div className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-gold-100 text-gold-700">
+                <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M3 7l9 6 9-6M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <div className="min-w-0">
+                <h2 className="font-display text-xl font-semibold text-green-950">
+                  Confirm your email address
+                </h2>
+                {emailSent ? (
+                  <p className="mt-2 text-[15px] leading-relaxed text-green-900/75">
+                    We&apos;ve sent a confirmation link to{" "}
+                    <span className="font-semibold break-words">{data.email}</span>.
+                    Please open it &mdash; the Executive Council only begins
+                    reviewing your application once your email is confirmed.
+                    Check your spam folder if it doesn&apos;t arrive within a few
+                    minutes.
+                  </p>
+                ) : (
+                  <p className="mt-2 text-[15px] leading-relaxed text-green-900/75">
+                    We tried to send a confirmation link to{" "}
+                    <span className="font-semibold break-words">{data.email}</span>{" "}
+                    but couldn&apos;t reach the mail server just now. You can still{" "}
+                    <Link
+                      href="/contact"
+                      className="font-semibold text-green-800 underline hover:text-gold-600"
+                    >
+                      contact the General Secretary
+                    </Link>{" "}
+                    to confirm your details.
+                  </p>
+                )}
+
+                {verifyUrl && (
+                  <div className="mt-5 rounded-xl border border-dashed border-amber-300 bg-amber-50 p-4">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-amber-800">
+                      Dev shortcut
+                    </div>
+                    <p className="mt-1 text-sm text-amber-900/80">
+                      Skip the inbox and confirm directly (shown in development
+                      only):
+                    </p>
+                    <a
+                      href={verifyUrl}
+                      className="mt-3 inline-flex rounded-full bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-500"
+                    >
+                      Confirm email now →
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-green-900/10 bg-white p-8 sm:p-10">
+            <h2 className="font-display text-xl font-semibold text-green-950">
+              What happens next
+            </h2>
+            <ol className="mt-5 space-y-4 text-[15px] leading-relaxed text-green-900/80">
+              <li className="flex gap-3">
+                <span className="mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-full bg-green-900 font-display text-xs font-semibold text-gold-400">
+                  1
+                </span>
+                <span>
+                  You confirm your email using the link above. Your application
+                  only enters the review queue once it&apos;s confirmed.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-full bg-green-900 font-display text-xs font-semibold text-gold-400">
+                  2
+                </span>
+                <span>
+                  The Executive Council reviews your application against the
+                  professional criteria in Article 6.1 of the Constitution.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-full bg-green-900 font-display text-xs font-semibold text-gold-400">
+                  3
+                </span>
+                <span>
+                  You receive an email with the outcome. If approved, the email
+                  includes a secure link to pay the annual membership fee.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-full bg-green-900 font-display text-xs font-semibold text-gold-400">
+                  4
+                </span>
+                <span>
+                  Once payment is received, your account activates and you set
+                  your own password via a secure link &mdash; shown on screen
+                  and emailed &mdash; then sign in.
+                </span>
+              </li>
+            </ol>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/"
+                className="rounded-full bg-gold-500 px-7 py-3 text-sm font-semibold text-green-950 transition-all hover:-translate-y-0.5 hover:bg-gold-400"
+              >
+                Back to Home
+              </Link>
+              <Link
+                href="/about"
+                className="rounded-full border border-green-900/20 px-7 py-3 text-sm font-semibold text-green-900 transition-colors hover:border-green-700"
+              >
+                Learn About WPN
+              </Link>
+              {isDev && (
+                <button
+                  type="button"
+                  onClick={submitAnotherTest}
+                  className="ml-auto rounded-full border border-dashed border-amber-400 bg-amber-50 px-5 py-3 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+                  title="Dev only — resets form with fresh random test data and jumps to Review"
+                >
+                  Dev · Submit Another Test
+                </button>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <Footer />
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-cream">
@@ -498,38 +700,6 @@ export default function Apply() {
               className="rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-500"
             >
               Fill Test Data
-            </button>
-          </div>
-        )}
-
-        {submitted && submittedId && (
-          <div className="mb-6 flex items-start justify-between gap-4 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3">
-            <div className="flex items-start gap-3">
-              <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-emerald-600 text-white">
-                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                  <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </span>
-              <div>
-                <div className="text-sm font-semibold text-emerald-900">
-                  Application submitted
-                </div>
-                <div className="mt-0.5 text-xs text-emerald-900/75">
-                  Reference: <span className="font-mono">{submittedId}</span>
-                  {" · "}
-                  The Executive Council reviews within 30 days.
-                </div>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setSubmitted(false);
-                setSubmittedId(null);
-              }}
-              className="text-xs font-semibold text-emerald-800 hover:text-emerald-900"
-            >
-              Dismiss
             </button>
           </div>
         )}
