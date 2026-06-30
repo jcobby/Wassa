@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 
@@ -29,8 +30,10 @@ export function ReviewActions({ id }: { id: string }) {
           `/applications/${id}/approve`,
           { notes }
         );
+        // Don't router.refresh() here — it would unmount this component (the
+        // app is no longer "pending") and wipe the result panel before the
+        // admin can read it / copy the fallback payment link.
         setApproved(out);
-        router.refresh();
       } else {
         await api.patch(`/applications/${id}/reject`, { notes });
         router.refresh();
@@ -56,6 +59,12 @@ export function ReviewActions({ id }: { id: string }) {
             membership fee. Their account will activate automatically after
             payment.
           </p>
+          <Link
+            href="/admin/applications"
+            className="mt-4 inline-flex text-sm font-semibold text-emerald-800 hover:text-emerald-700"
+          >
+            &larr; Back to applications
+          </Link>
         </div>
       );
     }
@@ -86,6 +95,12 @@ export function ReviewActions({ id }: { id: string }) {
             </button>
           </div>
         )}
+        <Link
+          href="/admin/applications"
+          className="mt-4 inline-flex text-sm font-semibold text-amber-800 hover:text-amber-700"
+        >
+          &larr; Back to applications
+        </Link>
       </div>
     );
   }
