@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { adminFetch } from "@/lib/adminAuth";
 import { MemberActions } from "./MemberActions";
 import { ResendEmail } from "./ResendEmail";
+import { DuesManager } from "./DuesManager";
 
 type MemberDetail = {
   _id: string;
@@ -121,6 +122,8 @@ export default async function MemberDetailPage({
           m.status === "terminated") && (
           <MemberActions id={id} status={m.status} />
         )}
+
+      {m.role !== "admin" && <DuesManager id={id} />}
     </div>
   );
 }

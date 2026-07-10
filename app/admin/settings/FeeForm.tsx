@@ -7,9 +7,11 @@ import { api, ApiError } from "@/lib/api";
 export function FeeForm({
   initialAmount,
   initialCurrency,
+  endpoint = "/settings/membership-fee",
 }: {
   initialAmount: number;
   initialCurrency: string;
+  endpoint?: string;
 }) {
   const router = useRouter();
   const [amount, setAmount] = useState(String(initialAmount));
@@ -27,7 +29,7 @@ export function FeeForm({
     }
     setSaving(true);
     try {
-      await api.patch("/settings/membership-fee", {
+      await api.patch(endpoint, {
         amount: value,
         currency: currency || undefined,
       });

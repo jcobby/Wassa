@@ -21,6 +21,14 @@ export const site = {
   ],
 };
 
+// Fee structure — set by the General Assembly. Displayed to members/applicants.
+export const fees = {
+  currency: "GH₵",
+  registration: 100, // one-time, on admission
+  dues: 300, // per quarter
+  duesPerYear: 1200, // 300 × 4 quarters
+};
+
 export const nav = [
   { label: "Home", href: "/" },
   {
@@ -50,7 +58,7 @@ export const nav = [
     children: [
       { label: "Requirements", href: "/membership" },
       { label: "Apply for Membership", href: "/membership/apply" },
-      { label: "Dues Payment", href: "#" },
+      { label: "Dues Payment", href: "/dashboard/dues" },
     ],
   },
   { label: "Contact", href: "/contact" },

@@ -74,6 +74,7 @@ const COUNTRIES = [
 ];
 const EDUCATION_OPTIONS = [
   "Certificate", "Degree", "Diploma", "Masters Degree", "Doctorate Degree",
+  "Other",
 ];
 const INTEREST_OPTIONS = [
   "Mentorship", "Business Networking", "Investment Opportunities",
@@ -103,6 +104,7 @@ type FormData = {
   currentWorkplace: string;
   jobTitle: string;
   educationalBackground: string[];
+  educationalBackgroundOther: string;
   workExperience: string;
   areasOfInterest: string[];
   areasOfInterestOther: string;
@@ -133,6 +135,7 @@ const INITIAL: FormData = {
   currentWorkplace: "",
   jobTitle: "",
   educationalBackground: [],
+  educationalBackgroundOther: "",
   workExperience: "",
   areasOfInterest: [],
   areasOfInterestOther: "",
@@ -186,6 +189,11 @@ function validate(step: number, data: FormData): string[] {
     if (!data.jobTitle.trim()) errs.push("Job title/position is required.");
     if (data.educationalBackground.length === 0)
       errs.push("Please select at least one educational background.");
+    if (
+      data.educationalBackground.includes("Other") &&
+      !data.educationalBackgroundOther.trim()
+    )
+      errs.push("Please specify your “Other” qualification.");
     if (!data.workExperience.trim()) errs.push("Work experience is required.");
     if (data.areasOfInterest.length === 0)
       errs.push("Please select at least one area of interest.");
@@ -315,6 +323,7 @@ export default function Apply() {
       currentWorkplace: "Acme Ghana Ltd.",
       jobTitle: "Senior Engineer",
       educationalBackground: ["Degree"],
+      educationalBackgroundOther: "",
       workExperience:
         "5+ years building web applications. Previously at XYZ Corp as a developer.",
       areasOfInterest: ["Mentorship", "Business Networking"],
@@ -341,6 +350,13 @@ export default function Apply() {
           ? [`Other: ${data.areasOfInterestOther.trim()}`]
           : []),
       ];
+      const education = [
+        ...data.educationalBackground.filter((v) => v !== "Other"),
+        ...(data.educationalBackground.includes("Other") &&
+        data.educationalBackgroundOther.trim()
+          ? [`Other: ${data.educationalBackgroundOther.trim()}`]
+          : []),
+      ];
       const payload = {
         fullName: data.fullName.trim(),
         title,
@@ -361,7 +377,7 @@ export default function Apply() {
         occupation: data.occupation.trim(),
         currentPlaceOfWork: data.currentWorkplace.trim(),
         jobTitle: data.jobTitle.trim(),
-        educationalBackground: data.educationalBackground,
+        educationalBackground: education,
         workExperience: data.workExperience.trim(),
         areasOfInterest: interests,
         nextOfKin: {
@@ -916,6 +932,17 @@ export default function Apply() {
                         className="h-4 w-4 accent-green-900"
                       />
                       <span className="text-[15px] text-green-900/80">{opt}</span>
+                      {opt === "Other" &&
+                        data.educationalBackground.includes("Other") && (
+                          <input
+                            className="ml-2 flex-1 border-b border-green-900/20 bg-transparent pb-1 text-[15px] text-green-950 outline-none focus:border-gold-500"
+                            placeholder="e.g. ACCA, Chartered Accountant, PhD…"
+                            value={data.educationalBackgroundOther}
+                            onChange={(e) =>
+                              set("educationalBackgroundOther", e.target.value)
+                            }
+                          />
+                        )}
                     </label>
                   ))}
                 </div>
@@ -1033,7 +1060,16 @@ export default function Apply() {
               <ReviewRow label="Occupation" value={data.occupation} />
               <ReviewRow label="Current Workplace" value={data.currentWorkplace} />
               <ReviewRow label="Job Title" value={data.jobTitle} />
-              <ReviewRow label="Education" value={data.educationalBackground} />
+              <ReviewRow
+                label="Education"
+                value={[
+                  ...data.educationalBackground.filter((v) => v !== "Other"),
+                  ...(data.educationalBackground.includes("Other") &&
+                  data.educationalBackgroundOther
+                    ? [`Other: ${data.educationalBackgroundOther}`]
+                    : []),
+                ]}
+              />
               <ReviewRow label="Work Experience" value={data.workExperience} />
               <ReviewRow
                 label="Areas of Interest"

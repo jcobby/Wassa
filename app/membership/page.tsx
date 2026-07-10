@@ -2,6 +2,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
+import { fees } from "@/lib/site";
 
 const categories = [
   {
@@ -64,7 +65,7 @@ const admissionSteps = [
   },
   {
     title: "Admission & Dues",
-    body: "Successful applicants are admitted as Full Members. Membership dues are set annually by the General Assembly and communicated at least 60 days before the due date.",
+    body: "Successful applicants pay a one-time registration fee of GH₵100 to activate membership, then quarterly dues of GH₵300 (every 3 months) to remain in good standing.",
   },
 ];
 
@@ -254,6 +255,72 @@ export default function Membership() {
               </div>
             </Reveal>
           ))}
+        </div>
+      </section>
+
+      {/* FEES & DUES */}
+      <section className="bg-cream py-20">
+        <div className="mx-auto max-w-7xl px-6">
+          <Reveal>
+            <div className="flex items-center gap-3">
+              <span className="h-px w-10 bg-gold-500" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-gold-600">
+                Fees &amp; Dues
+              </span>
+            </div>
+            <h2 className="mt-3 max-w-2xl font-display text-3xl font-semibold text-green-950 sm:text-4xl">
+              What membership costs
+            </h2>
+            <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-green-900/70">
+              Every member pays a one-time registration fee on admission, then
+              quarterly dues thereafter to stay in good standing.
+            </p>
+          </Reveal>
+
+          <div className="mt-10 grid gap-6 md:grid-cols-2">
+            <Reveal>
+              <div className="h-full rounded-3xl border border-green-900/10 bg-white p-8">
+                <div className="text-xs font-semibold uppercase tracking-wider text-gold-600">
+                  One-time
+                </div>
+                <h3 className="mt-2 font-display text-2xl font-semibold text-green-950">
+                  Registration fee
+                </h3>
+                <div className="mt-4 font-display text-4xl font-semibold text-green-950">
+                  {fees.currency}
+                  {fees.registration}
+                </div>
+                <p className="mt-3 text-[15px] leading-relaxed text-green-900/70">
+                  Paid once, after your application is approved, to activate your
+                  membership.
+                </p>
+              </div>
+            </Reveal>
+
+            <Reveal delay={120}>
+              <div className="h-full rounded-3xl border-2 border-gold-400/40 bg-white p-8">
+                <div className="text-xs font-semibold uppercase tracking-wider text-gold-600">
+                  Recurring
+                </div>
+                <h3 className="mt-2 font-display text-2xl font-semibold text-green-950">
+                  Quarterly dues
+                </h3>
+                <div className="mt-4 flex items-baseline gap-2">
+                  <span className="font-display text-4xl font-semibold text-green-950">
+                    {fees.currency}
+                    {fees.dues}
+                  </span>
+                  <span className="text-sm text-green-900/60">every 3 months</span>
+                </div>
+                <p className="mt-3 text-[15px] leading-relaxed text-green-900/70">
+                  {fees.currency}
+                  {fees.dues} per quarter (4&times; a year &mdash; {fees.currency}
+                  {fees.duesPerYear} annually), keeping your voting and
+                  office-holding rights active.
+                </p>
+              </div>
+            </Reveal>
+          </div>
         </div>
       </section>
 

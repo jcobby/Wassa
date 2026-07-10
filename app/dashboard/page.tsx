@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { getMe } from "@/lib/adminAuth";
+import { fees } from "@/lib/site";
 import { SignOutButton } from "../admin/_components/SignOutButton";
 
 export default async function MemberDashboard() {
@@ -81,6 +82,29 @@ export default async function MemberDashboard() {
               </li>
             </ul>
           </div>
+        </div>
+
+        {/* Membership dues reminder */}
+        <div className="mt-6 rounded-3xl border-2 border-gold-400/40 bg-white p-7">
+          <div className="text-xs font-semibold uppercase tracking-wider text-gold-600">
+            Membership dues
+          </div>
+          <h2 className="mt-1 font-display text-xl font-semibold text-green-950">
+            {fees.currency}
+            {fees.dues} every quarter
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-green-900/70">
+            Quarterly dues of {fees.currency}
+            {fees.dues} (every 3 months &mdash; {fees.currency}
+            {fees.duesPerYear} a year) keep your membership in good standing and
+            your voting and office-holding rights active.
+          </p>
+          <Link
+            href="/dashboard/dues"
+            className="mt-4 inline-flex rounded-full bg-gold-500 px-6 py-2.5 text-sm font-semibold text-green-950 transition-all hover:-translate-y-0.5 hover:bg-gold-400"
+          >
+            Pay your dues &rarr;
+          </Link>
         </div>
       </section>
       <Footer />

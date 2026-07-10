@@ -17,7 +17,7 @@ type Me = {
 
 // Links only members should see — hidden from the nav when logged out. (The
 // pages themselves still redirect; this just keeps the menu honest.)
-const GATED_HREFS = new Set(["/executives", "/committees"]);
+const GATED_HREFS = new Set(["/executives", "/committees", "/dashboard/dues"]);
 // Links only non-members should see — hidden once you're signed in (you can't
 // apply again if you're already a member).
 const GUEST_ONLY_HREFS = new Set(["/membership/apply"]);
