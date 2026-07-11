@@ -6,7 +6,12 @@ export const site = {
   short: "WPN",
   mantra: "Help a Wassa to Help Wassa",
   email: "admin@wassaprosnetwork.org",
-  phones: ["(+233) 000 000 000", "(+233) 000 000 000"], // [PLACEHOLDER]
+  phones: [
+    "055 196 7556",
+    "055 198 3187",
+    "055 199 9406",
+    "055 196 0192",
+  ],
   address: {
     line1: "P.O. Box [PLACEHOLDER], Western Region", // [PLACEHOLDER]
     line2: "[Street Address], Wassa", // [PLACEHOLDER]
