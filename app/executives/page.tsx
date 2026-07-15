@@ -1,9 +1,7 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
-import { getMe } from "@/lib/adminAuth";
 
 const executives = [
   {
@@ -98,10 +96,7 @@ const executives = [
   },
 ];
 
-export default async function Executives() {
-  const me = await getMe();
-  if (!me) redirect("/login?next=/executives");
-
+export default function Executives() {
   return (
     <main className="bg-cream">
       <Navbar />

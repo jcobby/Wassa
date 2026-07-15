@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/admin", "/dashboard", "/executives", "/committees"];
+const PROTECTED_PREFIXES = ["/admin", "/dashboard"];
 // Pages that only make sense when logged OUT — members get sent to their area.
 const GUEST_ONLY_PREFIXES = ["/membership/apply"];
 
@@ -53,8 +53,6 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/dashboard/:path*",
-    "/executives/:path*",
-    "/committees/:path*",
     "/membership/apply/:path*",
   ],
 };
