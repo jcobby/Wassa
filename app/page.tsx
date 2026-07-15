@@ -110,9 +110,9 @@ export default function Home() {
               style={{ animationDelay: "0.4s" }}
             >
               {[
-                ["10+", "Standing Committees"],
-                ["13+", "Professional Fields"],
-                ["100%", "Community Driven"],
+                ["6", "Standing Committees"],
+                ["Over 13", "Professional Fields"],
+                ["Open", "Membership"],
               ].map(([n, l]) => (
                 <div key={l}>
                   <div className="font-display text-3xl font-semibold text-gold-400">

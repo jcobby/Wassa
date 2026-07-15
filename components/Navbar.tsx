@@ -37,6 +37,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [mobileSub, setMobileSub] = useState<string | null>(null);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -44,6 +45,15 @@ export default function Navbar() {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Close an open dropdown when clicking/tapping elsewhere. This is what lets
+  // the menus work on touch devices (which have no hover).
+  useEffect(() => {
+    if (!openMenu) return;
+    const close = () => setOpenMenu(null);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [openMenu]);
 
   const router = useRouter();
   const [me, setMe] = useState<Me | null>(null);
@@ -125,10 +135,20 @@ export default function Navbar() {
             <li key={item.label} className="group relative">
               {item.children ? (
                 <>
-                  <button className="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium text-cream/85 transition-colors hover:text-gold-400">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenu(
+                        openMenu === item.label ? null : item.label
+                      );
+                    }}
+                    className="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium text-cream/85 transition-colors hover:text-gold-400"
+                  >
                     {item.label}
                     <svg
-                      className="h-3 w-3 transition-transform group-hover:rotate-180"
+                      className={`h-3 w-3 transition-transform group-hover:rotate-180 ${
+                        openMenu === item.label ? "rotate-180" : ""
+                      }`}
                       viewBox="0 0 12 12"
                       fill="none"
                     >
@@ -140,7 +160,13 @@ export default function Navbar() {
                       />
                     </svg>
                   </button>
-                  <div className="invisible absolute left-0 top-full pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                  <div
+                    className={`absolute left-0 top-full pt-3 transition-all duration-200 group-hover:visible group-hover:opacity-100 ${
+                      openMenu === item.label
+                        ? "visible opacity-100"
+                        : "invisible opacity-0"
+                    }`}
+                  >
                     <div className="min-w-[210px] overflow-hidden rounded-2xl border border-gold-400/15 bg-green-900 shadow-xl shadow-black/40">
                       {item.children.map((c) => (
                         <Link

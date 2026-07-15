@@ -17,6 +17,10 @@ const info = [
     lines: [site.address.line2],
   },
   {
+    label: "Digital Address",
+    lines: [site.address.digitalAddress],
+  },
+  {
     label: "Email Us",
     lines: [site.email],
   },

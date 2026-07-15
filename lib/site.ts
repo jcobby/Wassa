@@ -13,8 +13,9 @@ export const site = {
     "055 196 0192",
   ],
   address: {
-    line1: "P.O. Box [PLACEHOLDER], Western Region", // [PLACEHOLDER]
-    line2: "[Street Address], Wassa", // [PLACEHOLDER]
+    line1: "P.O. Box 71412, Accra GA/R, Greater Accra",
+    line2: "House No. 714/2, 18th Lane, Osu, Accra",
+    digitalAddress: "GR-056-9285",
   },
   socials: [
     { label: "X", href: "#" },
@@ -47,15 +48,15 @@ export const nav = [
   {
     label: "What We Do",
     children: [
-      { label: "Projects", href: "#" },
-      { label: "Project Gallery", href: "#" },
+      { label: "Projects", href: "/projects" },
+      { label: "Project Gallery", href: "/projects#gallery" },
     ],
   },
   {
     label: "Events",
     children: [
-      { label: "News", href: "#" },
-      { label: "Events Gallery", href: "#" },
+      { label: "News", href: "/events#news" },
+      { label: "Events Gallery", href: "/events#gallery" },
     ],
   },
   {
