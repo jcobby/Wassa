@@ -1,10 +1,13 @@
 import { adminFetch } from "@/lib/adminAuth";
 import { FeeForm } from "./FeeForm";
+import { QuarterCollection } from "./QuarterCollection";
 
 type Fee = { amount: number; currency: string };
+type DisabledQuarter = { year: number; quarter: number };
 type Settings = {
   membershipFee: Fee;
   quarterlyDues: Fee;
+  disabledDuesQuarters?: DisabledQuarter[];
 };
 
 async function loadSettings(): Promise<Settings> {
@@ -14,6 +17,7 @@ async function loadSettings(): Promise<Settings> {
     return {
       membershipFee: { amount: 0, currency: "GHS" },
       quarterlyDues: { amount: 0, currency: "GHS" },
+      disabledDuesQuarters: [],
     };
   }
 }
@@ -57,6 +61,19 @@ export default async function SettingsPage() {
           initialCurrency={s.quarterlyDues.currency}
           endpoint="/settings/quarterly-dues"
         />
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
+        <h2 className="font-display text-xl font-semibold">
+          Dues Collection by Quarter
+        </h2>
+        <p className="mt-1 text-sm text-slate-600">
+          Turn off dues for a whole quarter when the association decides not to
+          collect (e.g. a hardship period or a levy-funded quarter). While a
+          quarter is off, no member owes it and no one can pay it on the site.
+          Quarters already paid are unaffected.
+        </p>
+        <QuarterCollection initialDisabled={s.disabledDuesQuarters ?? []} />
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { adminFetch } from "@/lib/adminAuth";
 
 type AppRow = {
   id: string;
+  applicantId?: string | null;
   fullName: string;
   email: string;
   emailVerified?: boolean;
@@ -70,6 +71,7 @@ export default async function ApplicationsPage({
           <table className="w-full text-left text-sm">
             <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
               <tr>
+                <th className="px-6 py-3 font-semibold">WPN ID</th>
                 <th className="px-6 py-3 font-semibold">Name</th>
                 <th className="px-6 py-3 font-semibold">Email</th>
                 <th className="px-6 py-3 font-semibold">Occupation</th>
@@ -81,6 +83,9 @@ export default async function ApplicationsPage({
             <tbody className="divide-y divide-slate-100">
               {rows.map((r) => (
                 <tr key={r.id} className="hover:bg-slate-50">
+                  <td className="px-6 py-4 font-mono text-xs font-semibold text-slate-700">
+                    {r.applicantId ?? "—"}
+                  </td>
                   <td className="px-6 py-4 font-medium text-slate-900">
                     {r.fullName}
                   </td>

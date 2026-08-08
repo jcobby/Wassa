@@ -46,6 +46,14 @@ export default async function MemberDashboard() {
                 <span className="text-green-900/55">Status:</span>{" "}
                 <span className="capitalize">{me.status}</span>
               </div>
+              {me.applicantId && (
+                <div>
+                  <span className="text-green-900/55">WPN ID:</span>{" "}
+                  <span className="font-mono font-semibold tracking-wide text-green-950">
+                    {me.applicantId}
+                  </span>
+                </div>
+              )}
             </div>
             <div className="mt-5">
               <SignOutButton />

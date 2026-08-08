@@ -98,6 +98,8 @@ export default function Events() {
                   <a
                     key={s.label}
                     href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="rounded-full border border-green-900/15 px-5 py-2 text-sm font-medium text-green-900 transition-colors hover:border-gold-500 hover:bg-green-900 hover:text-gold-400"
                   >
                     {s.label}

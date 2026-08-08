@@ -10,6 +10,7 @@ export type Me = {
   role: "member" | "admin";
   fullName: string;
   status: "active" | "suspended" | "terminated";
+  applicantId?: string | null;
 };
 
 export async function getMe(): Promise<Me | null> {

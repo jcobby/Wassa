@@ -388,10 +388,11 @@ export default function Apply() {
       };
       const out = await api.post<{
         id: string;
+        applicantId?: string;
         emailSent?: boolean;
         verifyUrl?: string;
       }>("/applications", payload);
-      setSubmittedId(out.id);
+      setSubmittedId(out.applicantId ?? out.id);
       setEmailSent(Boolean(out.emailSent));
       setVerifyUrl(out.verifyUrl ?? null);
       setSubmitted(true);
@@ -478,9 +479,16 @@ export default function Apply() {
             </p>
 
             {submittedId && (
-              <div className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full border border-cream/15 bg-green-900/40 px-4 py-2 text-xs text-cream/70">
-                <span className="uppercase tracking-wider">Reference</span>
-                <span className="font-mono text-cream">{submittedId}</span>
+              <div className="mx-auto mt-5 max-w-sm rounded-2xl border border-gold-400/30 bg-green-900/40 px-5 py-4">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-400">
+                  Your WPN ID
+                </div>
+                <div className="mt-1 font-mono text-2xl font-semibold tracking-wide text-cream">
+                  {submittedId}
+                </div>
+                <div className="mt-1.5 text-xs text-cream/60">
+                  Save this — it identifies you to WPN for life.
+                </div>
               </div>
             )}
           </div>

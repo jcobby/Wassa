@@ -270,25 +270,31 @@ export default function Contact() {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-green-900/10 bg-white p-8">
-                <h3 className="font-display text-xl font-semibold text-green-950">
-                  Connect with us
-                </h3>
-                <p className="mt-1 text-sm text-green-900/60">
-                  Follow WPN across social media.
-                </p>
-                <div className="mt-5 flex flex-wrap gap-2.5">
-                  {site.socials.map((s) => (
-                    <a
-                      key={s.label}
-                      href={s.href}
-                      className="rounded-full border border-green-900/15 px-5 py-2 text-sm font-medium text-green-900 transition-colors hover:border-gold-500 hover:bg-green-900 hover:text-gold-400"
-                    >
-                      {s.label}
-                    </a>
-                  ))}
+              {site.socials.some((s) => s.href !== "#") && (
+                <div className="rounded-3xl border border-green-900/10 bg-white p-8">
+                  <h3 className="font-display text-xl font-semibold text-green-950">
+                    Connect with us
+                  </h3>
+                  <p className="mt-1 text-sm text-green-900/60">
+                    Follow WPN across social media.
+                  </p>
+                  <div className="mt-5 flex flex-wrap gap-2.5">
+                    {site.socials
+                      .filter((s) => s.href !== "#")
+                      .map((s) => (
+                        <a
+                          key={s.label}
+                          href={s.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-full border border-green-900/15 px-5 py-2 text-sm font-medium text-green-900 transition-colors hover:border-gold-500 hover:bg-green-900 hover:text-gold-400"
+                        >
+                          {s.label}
+                        </a>
+                      ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </Reveal>
         </div>

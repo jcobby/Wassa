@@ -7,7 +7,13 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { api, ApiError } from "@/lib/api";
 
-type Quarter = { quarter: number; paid: boolean; waived: boolean; due: boolean };
+type Quarter = {
+  quarter: number;
+  paid: boolean;
+  waived: boolean;
+  disabled: boolean;
+  due: boolean;
+};
 type DuesStatus = {
   year: number;
   currentQuarter: number;
@@ -149,6 +155,10 @@ function DuesContent() {
                       ) : q.waived ? (
                         <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-blue-800">
                           Waived
+                        </span>
+                      ) : q.disabled ? (
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-600">
+                          No dues
                         </span>
                       ) : q.due ? (
                         <button

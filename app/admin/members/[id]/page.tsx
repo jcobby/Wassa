@@ -7,6 +7,7 @@ import { DuesManager } from "./DuesManager";
 
 type MemberDetail = {
   _id: string;
+  applicantId?: string | null;
   fullName: string;
   title: string;
   titleOther?: string;
@@ -61,7 +62,14 @@ export default async function MemberDetailPage({
 
       <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-semibold">{m.fullName}</h1>
+          {m.applicantId && (
+            <div className="font-mono text-xs font-semibold uppercase tracking-wider text-green-700">
+              {m.applicantId}
+            </div>
+          )}
+          <h1 className="mt-1 font-display text-3xl font-semibold">
+            {m.fullName}
+          </h1>
           <p className="mt-1 text-sm text-slate-600">{m.email}</p>
           <p className="mt-1 text-xs uppercase tracking-wider text-slate-500">
             Joined {new Date(m.joinedAt).toLocaleDateString()}

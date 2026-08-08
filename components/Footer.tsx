@@ -5,15 +5,27 @@ import { site } from "@/lib/site";
 const cols = [
   {
     title: "Who We Are",
-    links: ["About WPN", "Executives", "Committees"],
+    links: [
+      { label: "About WPN", href: "/about" },
+      { label: "Executives", href: "/executives" },
+      { label: "Committees", href: "/committees" },
+    ],
   },
   {
     title: "What We Do",
-    links: ["Projects", "Project Gallery", "Events Gallery"],
+    links: [
+      { label: "Projects", href: "/projects" },
+      { label: "Project Gallery", href: "/projects#gallery" },
+      { label: "Events Gallery", href: "/events#gallery" },
+    ],
   },
   {
     title: "Membership",
-    links: ["Requirements", "Dues Payment", "Member List"],
+    links: [
+      { label: "Requirements", href: "/membership" },
+      { label: "Apply for Membership", href: "/membership/apply" },
+      { label: "Dues Payment", href: "/dashboard/dues" },
+    ],
   },
 ];
 
@@ -46,17 +58,23 @@ export default function Footer() {
           <p className="mt-5 font-display text-lg italic text-gold-400">
             &ldquo;{site.mantra}&rdquo;
           </p>
-          <div className="mt-6 flex flex-wrap gap-2">
-            {site.socials.map((s) => (
-              <Link
-                key={s.label}
-                href={s.href}
-                className="flex h-9 items-center rounded-full border border-cream/15 px-4 text-xs font-medium text-cream/70 transition-colors hover:border-gold-400 hover:text-gold-400"
-              >
-                {s.label}
-              </Link>
-            ))}
-          </div>
+          {site.socials.some((s) => s.href !== "#") && (
+            <div className="mt-6 flex flex-wrap gap-2">
+              {site.socials
+                .filter((s) => s.href !== "#")
+                .map((s) => (
+                  <a
+                    key={s.label}
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-9 items-center rounded-full border border-cream/15 px-4 text-xs font-medium text-cream/70 transition-colors hover:border-gold-400 hover:text-gold-400"
+                  >
+                    {s.label}
+                  </a>
+                ))}
+            </div>
+          )}
         </div>
 
         {/* Link columns */}
@@ -67,12 +85,12 @@ export default function Footer() {
             </h4>
             <ul className="mt-4 space-y-2.5">
               {col.links.map((l) => (
-                <li key={l}>
+                <li key={l.label}>
                   <Link
-                    href="#"
+                    href={l.href}
                     className="text-sm transition-colors hover:text-gold-400"
                   >
-                    {l}
+                    {l.label}
                   </Link>
                 </li>
               ))}

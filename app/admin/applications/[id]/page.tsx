@@ -6,6 +6,7 @@ import { ResendVerification } from "./ResendVerification";
 
 type AppDetail = {
   _id: string;
+  applicantId?: string | null;
   fullName: string;
   title: string;
   titleOther?: string;
@@ -60,7 +61,14 @@ export default async function ApplicationDetail({
 
       <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-semibold">{app.fullName}</h1>
+          {app.applicantId && (
+            <div className="font-mono text-xs font-semibold uppercase tracking-wider text-green-700">
+              {app.applicantId}
+            </div>
+          )}
+          <h1 className="mt-1 font-display text-3xl font-semibold">
+            {app.fullName}
+          </h1>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <p className="text-sm text-slate-600">{app.email}</p>
             {app.emailVerified ? (
