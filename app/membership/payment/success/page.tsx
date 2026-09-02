@@ -6,6 +6,7 @@ type FulfillResult = {
   status: "success" | "failed" | "pending";
   memberId?: string;
   email?: string;
+  applicantId?: string | null;
   setPasswordToken?: string;
   alreadyFulfilled?: boolean;
 };
@@ -135,6 +136,22 @@ export default async function PaymentSuccessPage({
           Payment received. Your member account is now active.
         </p>
       </div>
+
+      {out.data.applicantId && (
+        <div className="mt-8 rounded-2xl bg-green-950 px-6 py-6 text-center">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-400">
+            Your WPN Membership ID
+          </div>
+          <div className="mt-2 font-mono text-3xl font-semibold tracking-[0.15em] text-cream">
+            {out.data.applicantId}
+          </div>
+          <div className="mt-3 text-xs leading-relaxed text-cream/60">
+            Yours for life. Keep it safe — quote it at WPN events, in
+            correspondence with the Secretariat, and when paying your dues. It
+            also sits on your dashboard once you sign in.
+          </div>
+        </div>
+      )}
 
       {out.data.setPasswordToken ? (
         <div className="mt-8 rounded-2xl border border-green-900/10 bg-white p-6 text-center">

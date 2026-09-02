@@ -20,6 +20,7 @@ export default function SetPasswordPage({
   const { token } = use(params);
   const router = useRouter();
   const [tokenStatus, setTokenStatus] = useState<TokenStatus>("checking");
+  const [applicantId, setApplicantId] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [show, setShow] = useState(false);
@@ -32,8 +33,14 @@ export default function SetPasswordPage({
   useEffect(() => {
     let active = true;
     api
-      .get<{ valid: boolean }>(`/auth/set-password/${token}/status`)
-      .then((r) => active && setTokenStatus(r.valid ? "valid" : "invalid"))
+      .get<{ valid: boolean; applicantId?: string | null }>(
+        `/auth/set-password/${token}/status`
+      )
+      .then((r) => {
+        if (!active) return;
+        setTokenStatus(r.valid ? "valid" : "invalid");
+        setApplicantId(r.applicantId ?? null);
+      })
       .catch(() => active && setTokenStatus("invalid"));
     return () => {
       active = false;
@@ -133,6 +140,17 @@ export default function SetPasswordPage({
                   <p className="mt-2 text-sm text-green-900/65">
                     Choose a password to access your WPN member account.
                   </p>
+
+                  {applicantId && (
+                    <div className="mt-5 rounded-2xl bg-green-950 px-5 py-4 text-center">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-400">
+                        Your WPN Membership ID
+                      </div>
+                      <div className="mt-1 font-mono text-xl font-semibold tracking-[0.15em] text-cream">
+                        {applicantId}
+                      </div>
+                    </div>
+                  )}
 
                   {done ? (
                     <div className="mt-8 rounded-2xl bg-emerald-50 p-6 text-center">

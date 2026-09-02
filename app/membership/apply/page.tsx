@@ -263,7 +263,6 @@ export default function Apply() {
   const [errors, setErrors] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [submittedId, setSubmittedId] = useState<string | null>(null);
   const [emailSent, setEmailSent] = useState(false);
   const [verifyUrl, setVerifyUrl] = useState<string | null>(null);
   const formTopRef = useRef<HTMLDivElement>(null);
@@ -334,7 +333,6 @@ export default function Apply() {
     });
     setErrors([]);
     setSubmitted(false);
-    setSubmittedId(null);
     setVerifyUrl(null);
     setEmailSent(false);
   };
@@ -388,11 +386,9 @@ export default function Apply() {
       };
       const out = await api.post<{
         id: string;
-        applicantId?: string;
         emailSent?: boolean;
         verifyUrl?: string;
       }>("/applications", payload);
-      setSubmittedId(out.applicantId ?? out.id);
       setEmailSent(Boolean(out.emailSent));
       setVerifyUrl(out.verifyUrl ?? null);
       setSubmitted(true);
@@ -440,7 +436,6 @@ export default function Apply() {
   if (submitted) {
     const submitAnotherTest = () => {
       setSubmitted(false);
-      setSubmittedId(null);
       fillTestData();
       setStep(STEPS.length - 1); // jump straight to Review so one more click submits
     };
@@ -475,22 +470,9 @@ export default function Apply() {
             <p className="mx-auto mt-3 max-w-md text-[15px] leading-relaxed text-cream/75">
               Confirm your email below to begin the review. The Executive Council
               responds within thirty (30) days (Article 6.3) &mdash; and if
-              approved, sends a link to complete payment.
+              approved, issues your WPN membership ID and a link to complete
+              payment.
             </p>
-
-            {submittedId && (
-              <div className="mx-auto mt-5 max-w-sm rounded-2xl border border-gold-400/30 bg-green-900/40 px-5 py-4">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-400">
-                  Your WPN ID
-                </div>
-                <div className="mt-1 font-mono text-2xl font-semibold tracking-wide text-cream">
-                  {submittedId}
-                </div>
-                <div className="mt-1.5 text-xs text-cream/60">
-                  Save this — it identifies you to WPN for life.
-                </div>
-              </div>
-            )}
           </div>
         </section>
 
@@ -586,8 +568,12 @@ export default function Apply() {
                   3
                 </span>
                 <span>
-                  You receive an email with the outcome. If approved, the email
-                  includes a secure link to pay the annual membership fee.
+                  You receive an email with the outcome. If approved, that email
+                  carries your permanent{" "}
+                  <span className="font-semibold text-green-950">
+                    WPN membership ID
+                  </span>{" "}
+                  and a secure link to pay the registration fee.
                 </span>
               </li>
               <li className="flex gap-3">

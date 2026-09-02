@@ -7,10 +7,24 @@ import { api, ApiError } from "@/lib/api";
 
 type ApproveResponse = {
   memberId: string;
+  applicantId: string;
   emailSent: boolean;
   emailError?: string;
   fallbackPaymentUrl?: string;
 };
+
+function IssuedId({ applicantId }: { applicantId: string }) {
+  return (
+    <div className="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
+        WPN membership ID issued
+      </div>
+      <div className="mt-1 font-mono text-xl font-semibold tracking-[0.15em] text-slate-900">
+        {applicantId}
+      </div>
+    </div>
+  );
+}
 
 export function ReviewActions({ id }: { id: string }) {
   const router = useRouter();
@@ -55,10 +69,11 @@ export function ReviewActions({ id }: { id: string }) {
             Approved &mdash; payment link emailed
           </h2>
           <p className="mt-2 text-sm text-emerald-900/80">
-            The applicant will receive an email with a link to pay the
-            membership fee. Their account will activate automatically after
-            payment.
+            The applicant will receive an email with their membership ID and a
+            link to pay the membership fee. Their account will activate
+            automatically after payment.
           </p>
+          <IssuedId applicantId={approved.applicantId} />
           <Link
             href="/admin/applications"
             className="mt-4 inline-flex text-sm font-semibold text-emerald-800 hover:text-emerald-700"
@@ -75,8 +90,11 @@ export function ReviewActions({ id }: { id: string }) {
         </h2>
         <p className="mt-2 text-sm text-amber-900/80">
           {approved.emailError ??
-            "We couldn't send the approval email. Copy the link below and share it with the applicant manually."}
+            "We couldn't send the approval email."}{" "}
+          Share the membership ID and payment link below with the applicant
+          manually &mdash; they have not been told either yet.
         </p>
+        <IssuedId applicantId={approved.applicantId} />
         {approved.fallbackPaymentUrl && (
           <div className="mt-4 flex items-stretch gap-2">
             <input

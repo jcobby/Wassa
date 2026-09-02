@@ -5,6 +5,7 @@ import { PayButton } from "./PayButton";
 
 type Access = {
   memberId: string;
+  applicantId: string | null;
   fullName: string;
   email: string;
   status: "pending_payment" | "active" | "suspended" | "terminated";
@@ -81,6 +82,16 @@ export default async function PaymentLanding({
           <p className="mt-3 text-sm text-green-900/70">
             You can sign in any time.
           </p>
+          {data.applicantId && (
+            <div className="mt-6 rounded-2xl bg-green-950 px-6 py-5">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-400">
+                Your WPN Membership ID
+              </div>
+              <div className="mt-1.5 font-mono text-2xl font-semibold tracking-[0.15em] text-cream">
+                {data.applicantId}
+              </div>
+            </div>
+          )}
           <Link
             href="/login"
             className="mt-6 inline-flex rounded-full bg-gold-500 px-6 py-3 text-sm font-semibold text-green-950 hover:bg-gold-400"
@@ -102,9 +113,24 @@ export default async function PaymentLanding({
           Welcome, <span className="italic text-green-800">{firstName(data.fullName)}</span>
         </h1>
         <p className="mt-2 text-sm text-green-900/70">
-          Your application has been approved. Pay the annual membership fee to
+          Your application has been approved. Pay the registration fee to
           activate your account.
         </p>
+
+        {data.applicantId && (
+          <div className="mt-6 rounded-2xl bg-green-950 px-6 py-5 text-center">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-400">
+              Your WPN Membership ID
+            </div>
+            <div className="mt-1.5 font-mono text-2xl font-semibold tracking-[0.15em] text-cream">
+              {data.applicantId}
+            </div>
+            <div className="mt-2 text-xs text-cream/60">
+              Yours for life — we&apos;ve emailed it to you as well. Quote it in
+              any correspondence with the Secretariat.
+            </div>
+          </div>
+        )}
 
         <div className="mt-6 rounded-2xl bg-white p-6">
           <div className="flex items-baseline justify-between gap-4">

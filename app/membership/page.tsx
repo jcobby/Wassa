@@ -61,7 +61,7 @@ const admissionSteps = [
   },
   {
     title: "Executive Council Review",
-    body: "The Executive Council determines applications within thirty (30) days. Where the qualification is in doubt, the Council decides and an applicant may appeal to the General Assembly.",
+    body: "The Executive Council determines applications within thirty (30) days. Where the qualification is in doubt, the Council decides and an applicant may appeal to the General Assembly. On approval you are issued your WPN membership ID — yours for life — by email.",
   },
   {
     title: "Admission & Dues",
