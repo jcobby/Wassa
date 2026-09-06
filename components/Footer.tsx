@@ -25,6 +25,7 @@ const cols = [
       { label: "Requirements", href: "/membership" },
       { label: "Apply for Membership", href: "/membership/apply" },
       { label: "Dues Payment", href: "/dashboard/dues" },
+      { label: "Contribute", href: "/contribute" },
     ],
   },
 ];

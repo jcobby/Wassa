@@ -35,7 +35,16 @@ export const fees = {
   duesPerYear: 1200, // 300 × 4 quarters
 };
 
-export const nav = [
+// `accent` marks a call-to-action tab — rendered as an outlined pill in the
+// header so it reads as an invitation rather than just another section link.
+export type NavItem = {
+  label: string;
+  href?: string;
+  accent?: boolean;
+  children?: { label: string; href: string }[];
+};
+
+export const nav: NavItem[] = [
   { label: "Home", href: "/" },
   {
     label: "Who We Are",
@@ -67,5 +76,6 @@ export const nav = [
       { label: "Dues Payment", href: "/dashboard/dues" },
     ],
   },
+  { label: "Contribute", href: "/contribute", accent: true },
   { label: "Contact", href: "/contact" },
 ];

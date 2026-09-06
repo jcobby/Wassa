@@ -183,7 +183,11 @@ export default function Navbar() {
               ) : (
                 <Link
                   href={item.href!}
-                  className="rounded-full px-4 py-2 text-sm font-medium text-cream/85 transition-colors hover:text-gold-400"
+                  className={
+                    item.accent
+                      ? "rounded-full border border-gold-400/50 px-4 py-2 text-sm font-semibold text-gold-400 transition-colors hover:border-gold-400 hover:bg-gold-400/10"
+                      : "rounded-full px-4 py-2 text-sm font-medium text-cream/85 transition-colors hover:text-gold-400"
+                  }
                 >
                   {item.label}
                 </Link>
@@ -302,7 +306,11 @@ export default function Navbar() {
                 <Link
                   href={item.href!}
                   onClick={() => setOpen(false)}
-                  className="block py-3 text-cream"
+                  className={
+                    item.accent
+                      ? "block py-3 font-semibold text-gold-400"
+                      : "block py-3 text-cream"
+                  }
                 >
                   {item.label}
                 </Link>

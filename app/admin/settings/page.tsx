@@ -1,6 +1,10 @@
 import { adminFetch } from "@/lib/adminAuth";
 import { FeeForm } from "./FeeForm";
 import { QuarterCollection } from "./QuarterCollection";
+import {
+  ContributionSettings,
+  type ContributionConfig,
+} from "./ContributionSettings";
 
 type Fee = { amount: number; currency: string };
 type DisabledQuarter = { year: number; quarter: number };
@@ -8,6 +12,17 @@ type Settings = {
   membershipFee: Fee;
   quarterlyDues: Fee;
   disabledDuesQuarters?: DisabledQuarter[];
+  contributions?: Partial<ContributionConfig>;
+};
+
+// Matches the schema defaults, so the card still renders sensibly against a
+// settings document written before contributions existed.
+const CONTRIBUTION_DEFAULTS: ContributionConfig = {
+  enabled: true,
+  currency: "GHS",
+  minAmount: 1,
+  suggestedAmounts: [50, 100, 200, 500, 1000],
+  causes: ["Where it's needed most"],
 };
 
 async function loadSettings(): Promise<Settings> {
@@ -74,6 +89,19 @@ export default async function SettingsPage() {
           Quarters already paid are unaffected.
         </p>
         <QuarterCollection initialDisabled={s.disabledDuesQuarters ?? []} />
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
+        <h2 className="font-display text-xl font-semibold">
+          Voluntary Contributions
+        </h2>
+        <p className="mt-1 text-sm text-slate-600">
+          Public giving through the Contribute page. Anyone may give &mdash;
+          member or not &mdash; in any amount above the minimum you set here.
+        </p>
+        <ContributionSettings
+          initial={{ ...CONTRIBUTION_DEFAULTS, ...(s.contributions ?? {}) }}
+        />
       </div>
     </div>
   );

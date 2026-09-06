@@ -9,6 +9,7 @@ const nav = [
   { label: "Messages", href: "/admin/messages" },
   { label: "Dues", href: "/admin/dues" },
   { label: "Payments", href: "/admin/payments" },
+  { label: "Contributions", href: "/admin/contributions" },
   { label: "Settings", href: "/admin/settings" },
 ];
 
