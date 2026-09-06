@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { adminFetch } from "@/lib/adminAuth";
+import { ExperienceBadge } from "./ExperienceBadge";
 
 type AppRow = {
   id: string;
@@ -11,6 +12,7 @@ type AppRow = {
   submittedAt: string;
   occupation?: string;
   countryOfResidence?: string;
+  yearsOfExperience?: number | null;
 };
 
 const TABS = [
@@ -75,6 +77,7 @@ export default async function ApplicationsPage({
                 <th className="px-6 py-3 font-semibold">Name</th>
                 <th className="px-6 py-3 font-semibold">Email</th>
                 <th className="px-6 py-3 font-semibold">Occupation</th>
+                <th className="px-6 py-3 font-semibold">Experience</th>
                 <th className="px-6 py-3 font-semibold">Country</th>
                 <th className="px-6 py-3 font-semibold">Submitted</th>
                 <th className="px-6 py-3" />
@@ -105,6 +108,9 @@ export default async function ApplicationsPage({
                   </td>
                   <td className="px-6 py-4 text-slate-600">
                     {r.occupation ?? "—"}
+                  </td>
+                  <td className="px-6 py-4">
+                    <ExperienceBadge years={r.yearsOfExperience} />
                   </td>
                   <td className="px-6 py-4 text-slate-600">
                     {r.countryOfResidence ?? "—"}

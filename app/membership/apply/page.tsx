@@ -106,6 +106,10 @@ type FormData = {
   educationalBackground: string[];
   educationalBackgroundOther: string;
   workExperience: string;
+  // Whole years, empty until answered. Held as a string because that is what
+  // the input yields (and what the shared `set` helper takes); parsed to a
+  // number on submit.
+  yearsOfExperience: string;
   areasOfInterest: string[];
   areasOfInterestOther: string;
   nextOfKinName: string;
@@ -137,6 +141,7 @@ const INITIAL: FormData = {
   educationalBackground: [],
   educationalBackgroundOther: "",
   workExperience: "",
+  yearsOfExperience: "",
   areasOfInterest: [],
   areasOfInterestOther: "",
   nextOfKinName: "",
@@ -195,6 +200,15 @@ function validate(step: number, data: FormData): string[] {
     )
       errs.push("Please specify your “Other” qualification.");
     if (!data.workExperience.trim()) errs.push("Work experience is required.");
+    if (!data.yearsOfExperience.trim()) {
+      errs.push("Please enter your number of years of work experience.");
+    } else {
+      const years = Number(data.yearsOfExperience);
+      if (!Number.isInteger(years) || years < 0 || years > 70)
+        errs.push(
+          "Years of work experience must be a whole number between 0 and 70."
+        );
+    }
     if (data.areasOfInterest.length === 0)
       errs.push("Please select at least one area of interest.");
   }
@@ -325,6 +339,7 @@ export default function Apply() {
       educationalBackgroundOther: "",
       workExperience:
         "5+ years building web applications. Previously at XYZ Corp as a developer.",
+      yearsOfExperience: "6",
       areasOfInterest: ["Mentorship", "Business Networking"],
       areasOfInterestOther: "",
       nextOfKinName: "Jane Doe",
@@ -377,6 +392,7 @@ export default function Apply() {
         jobTitle: data.jobTitle.trim(),
         educationalBackground: education,
         workExperience: data.workExperience.trim(),
+        yearsOfExperience: Number(data.yearsOfExperience),
         areasOfInterest: interests,
         nextOfKin: {
           fullName: data.nextOfKinName.trim(),
@@ -953,6 +969,22 @@ export default function Apply() {
                 />
               </div>
               <div>
+                <label className={lbl}>
+                  Number of Years of Work Experience {req}
+                </label>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  max="70"
+                  step="1"
+                  className={inp}
+                  placeholder="e.g. 7"
+                  value={data.yearsOfExperience}
+                  onChange={(e) => set("yearsOfExperience", e.target.value)}
+                />
+              </div>
+              <div>
                 <label className={lbl}>Areas of Interest and Engagement (tick all that apply) {req}</label>
                 <div className="space-y-3">
                   {INTEREST_OPTIONS.map((opt) => (
@@ -1065,6 +1097,16 @@ export default function Apply() {
                 ]}
               />
               <ReviewRow label="Work Experience" value={data.workExperience} />
+              <ReviewRow
+                label="Years of Experience"
+                value={
+                  data.yearsOfExperience
+                    ? `${data.yearsOfExperience} year${
+                        data.yearsOfExperience === "1" ? "" : "s"
+                      }`
+                    : ""
+                }
+              />
               <ReviewRow
                 label="Areas of Interest"
                 value={[

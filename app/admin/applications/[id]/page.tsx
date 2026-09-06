@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { adminFetch } from "@/lib/adminAuth";
 import { ReviewActions } from "./ReviewActions";
 import { ResendVerification } from "./ResendVerification";
+import { ExperienceBadge } from "../ExperienceBadge";
 
 type AppDetail = {
   _id: string;
@@ -29,6 +30,9 @@ type AppDetail = {
   jobTitle: string;
   educationalBackground: string[];
   workExperience: string;
+  // null on applications submitted before the question was added — shown as
+  // "Not stated", never conflated with an answered "0 years".
+  yearsOfExperience?: number | null;
   areasOfInterest: string[];
   nextOfKin: { fullName: string; relationship: string; contact: string };
   status: "pending" | "approved" | "rejected";
@@ -119,7 +123,13 @@ export default async function ApplicationDetail({
         </Card>
 
         <Card title="Work Experience" className="md:col-span-2">
-          <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700">
+          <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 pb-3">
+            <span className="text-xs uppercase tracking-wider text-slate-500">
+              Years of experience
+            </span>
+            <ExperienceBadge years={app.yearsOfExperience} />
+          </div>
+          <p className="whitespace-pre-line pt-1 text-sm leading-relaxed text-slate-700">
             {app.workExperience}
           </p>
         </Card>

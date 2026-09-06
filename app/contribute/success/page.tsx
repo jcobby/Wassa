@@ -180,7 +180,7 @@ export default async function ContributionSuccessPage({
             <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-400">
               Receipt reference
             </div>
-            <div className="mt-1 font-mono text-xs tracking-wide text-cream/80">
+            <div className="mt-1 font-mono text-lg font-semibold tracking-[0.15em] text-cream">
               {out.data.reference}
             </div>
           </div>
