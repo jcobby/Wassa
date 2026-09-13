@@ -12,7 +12,10 @@ type Quarter = {
   paid: boolean;
   waived: boolean;
   disabled: boolean;
+  // Owed now (this or an earlier quarter).
   due: boolean;
+  // Not yet settled, so it can be paid — including quarters still ahead.
+  payable?: boolean;
 };
 type DuesStatus = {
   year: number;
@@ -160,15 +163,26 @@ function DuesContent() {
                         <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-600">
                           No dues
                         </span>
-                      ) : q.due ? (
+                      ) : q.due || q.payable ? (
+                        // A quarter still ahead can be settled early — same
+                        // payment, quieter styling so what's owed now leads.
                         <button
                           onClick={() => pay(q.quarter)}
                           disabled={paying !== null}
-                          className="rounded-full bg-gold-500 px-4 py-2 text-sm font-semibold text-green-950 transition-colors hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-70"
+                          className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
+                            q.due
+                              ? "bg-gold-500 text-green-950 hover:bg-gold-400"
+                              : "border border-green-900/20 text-green-900 hover:bg-green-900/5"
+                          }`}
                         >
                           {paying === q.quarter
                             ? "Opening…"
-                            : `Pay ${money(status.currency, status.amount)}`}
+                            : q.due
+                              ? `Pay ${money(status.currency, status.amount)}`
+                              : `Pay ahead ${money(
+                                  status.currency,
+                                  status.amount
+                                )}`}
                         </button>
                       ) : (
                         <span className="rounded-full border border-green-900/15 px-3 py-1 text-xs font-medium text-green-900/50">
