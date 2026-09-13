@@ -34,16 +34,23 @@ function money(currency: string, amount: number): string {
 
 function DuesContent() {
   const searchParams = useSearchParams();
-  const [status, setStatus] = useState<DuesStatus | null>(null);
+  // This year, then next year — dues can be paid ahead through next year.
+  const [statuses, setStatuses] = useState<DuesStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [paying, setPaying] = useState<number | null>(null);
+  // "year-quarter" of the payment being opened.
+  const [paying, setPaying] = useState<string | null>(null);
   const [justPaid, setJustPaid] = useState(false);
 
   const load = async () => {
     try {
-      const s = await api.get<DuesStatus>("/payments/dues/status");
-      setStatus(s);
+      // The server decides what "this year" is, so ask it first, then fetch
+      // the year after. A failure on next year still shows this year.
+      const current = await api.get<DuesStatus>("/payments/dues/status");
+      const next = await api
+        .get<DuesStatus>(`/payments/dues/status?year=${current.year + 1}`)
+        .catch(() => null);
+      setStatuses(next ? [current, next] : [current]);
     } catch (err) {
       setError(
         err instanceof ApiError ? err.message : "Could not load your dues."
@@ -71,16 +78,44 @@ function DuesContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const pay = async (quarter: number) => {
-    if (!status) return;
-    setPaying(quarter);
+  const pay = async (year: number, quarter: number) => {
+    setPaying(`${year}-${quarter}`);
     setError(null);
     try {
       const out = await api.post<{ authorizationUrl: string }>(
         "/payments/dues/initialize",
-        { year: status.year, quarter }
+        { year, quarter }
       );
       window.location.href = out.authorizationUrl;
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : "Could not start payment."
+      );
+      setPaying(null);
+    }
+  };
+
+  // Every unsettled quarter across the years shown, overdue ones included —
+  // what "pay all remaining" will cover. The server recomputes the same list.
+  const remaining = statuses.flatMap((s) =>
+    s.quarters
+      .filter((q) => q.payable)
+      .map((q) => ({ year: s.year, quarter: q.quarter }))
+  );
+  const perQuarter = statuses[0]?.amount ?? 0;
+  const currency = statuses[0]?.currency ?? "GHS";
+  const remainingTotal =
+    (Math.round(perQuarter * 100) * remaining.length) / 100;
+  const lastYear = statuses[statuses.length - 1]?.year;
+
+  const payAll = async () => {
+    setPaying("all");
+    setError(null);
+    try {
+      const out = await api.post<{ authorizationUrl: string }>(
+        "/payments/dues/initialize-all"
+      );
+      window.location.assign(out.authorizationUrl);
     } catch (err) {
       setError(
         err instanceof ApiError ? err.message : "Could not start payment."
@@ -125,12 +160,46 @@ function DuesContent() {
           <div className="flex justify-center py-16">
             <span className="h-8 w-8 animate-spin rounded-full border-2 border-green-900/20 border-t-green-800" />
           </div>
-        ) : status ? (
+        ) : statuses.length > 0 ? (
           <>
-            <div className="rounded-2xl border border-green-900/10 bg-white p-6 sm:p-8">
+            {remaining.length >= 2 && (
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gold-500/40 bg-white p-6 sm:p-8">
+                <div>
+                  <h2 className="font-display text-xl font-semibold text-green-950">
+                    Pay all remaining dues
+                  </h2>
+                  <p className="mt-1 text-sm text-green-900/60">
+                    {remaining.length} quarters through the end of {lastYear},
+                    in one payment.
+                  </p>
+                </div>
+                <button
+                  onClick={payAll}
+                  disabled={paying !== null}
+                  className="rounded-full bg-gold-500 px-6 py-3 text-sm font-semibold text-green-950 transition-colors hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {paying === "all"
+                    ? "Opening…"
+                    : `Pay ${money(currency, remainingTotal)}`}
+                </button>
+              </div>
+            )}
+
+            {statuses.map((status, i) => (
+            <div
+              key={status.year}
+              className={`rounded-2xl border border-green-900/10 bg-white p-6 sm:p-8 ${
+                i > 0 ? "mt-6" : ""
+              }`}
+            >
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h2 className="font-display text-xl font-semibold text-green-950">
                   {status.year} dues
+                  {i > 0 && (
+                    <span className="ml-2 text-sm font-normal text-green-900/55">
+                      (pay ahead)
+                    </span>
+                  )}
                 </h2>
                 <div className="text-sm text-green-900/60">
                   {money(status.currency, status.amount)} per quarter
@@ -167,7 +236,7 @@ function DuesContent() {
                         // A quarter still ahead can be settled early — same
                         // payment, quieter styling so what's owed now leads.
                         <button
-                          onClick={() => pay(q.quarter)}
+                          onClick={() => pay(status.year, q.quarter)}
                           disabled={paying !== null}
                           className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
                             q.due
@@ -175,7 +244,7 @@ function DuesContent() {
                               : "border border-green-900/20 text-green-900 hover:bg-green-900/5"
                           }`}
                         >
-                          {paying === q.quarter
+                          {paying === `${status.year}-${q.quarter}`
                             ? "Opening…"
                             : q.due
                               ? `Pay ${money(status.currency, status.amount)}`
@@ -194,6 +263,7 @@ function DuesContent() {
                 })}
               </div>
             </div>
+            ))}
 
             <p className="mt-6 text-center text-sm text-green-900/60">
               Payments are processed securely by Paystack (MTN MoMo, Vodafone
