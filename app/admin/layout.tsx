@@ -22,7 +22,7 @@ export default async function AdminLayout({
 
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-900">
-      <aside className="hidden w-64 flex-none flex-col border-r border-slate-200 bg-white lg:flex">
+      <aside className="hidden w-64 flex-none flex-col border-r border-slate-200 bg-white lg:flex print:hidden">
         <Link href="/" className="flex items-center gap-3 border-b border-slate-200 px-6 py-5">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-900 text-gold-400 font-display text-sm font-semibold">
             W
@@ -56,13 +56,13 @@ export default async function AdminLayout({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 lg:hidden">
+        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 lg:hidden print:hidden">
           <Link href="/admin" className="font-display text-sm font-semibold">
             WPN Admin
           </Link>
           <SignOutButton compact />
         </header>
-        <main className="flex-1 p-6 lg:p-10">{children}</main>
+        <main className="flex-1 p-6 lg:p-10 print:p-0">{children}</main>
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import { adminFetch } from "@/lib/adminAuth";
 import { MemberActions } from "./MemberActions";
 import { ResendEmail } from "./ResendEmail";
 import { DuesManager } from "./DuesManager";
+import { Statement } from "./Statement";
 
 type MemberDetail = {
   _id: string;
@@ -40,10 +41,13 @@ type MemberDetail = {
 
 export default async function MemberDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ txns?: string }>;
 }) {
   const { id } = await params;
+  const { txns } = await searchParams;
   let m: MemberDetail;
   try {
     m = await adminFetch<MemberDetail>(`/members/${id}`);
@@ -132,6 +136,8 @@ export default async function MemberDetailPage({
         )}
 
       {m.role !== "admin" && <DuesManager id={id} />}
+
+      <Statement id={id} showAll={txns === "all"} />
     </div>
   );
 }

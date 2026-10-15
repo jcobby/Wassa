@@ -1,16 +1,6 @@
 import Link from "next/link";
 import { adminFetch } from "@/lib/adminAuth";
-import { MessageItem } from "./MessageItem";
-
-type Message = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  message: string;
-  submittedAt: string;
-  readAt: string | null;
-};
+import { MessageItem, type Message } from "./MessageItem";
 
 const TABS = [
   { key: "unread", label: "Unread" },
@@ -41,7 +31,8 @@ export default async function MessagesPage({
     <div className="max-w-4xl">
       <h1 className="font-display text-3xl font-semibold">Messages</h1>
       <p className="mt-2 text-sm text-slate-600">
-        Contact form submissions from the public site.
+        Contact form submissions from the public site. Open a message to
+        reply to the sender by email.
       </p>
 
       <div className="mt-6 inline-flex rounded-lg border border-slate-200 bg-white p-1">

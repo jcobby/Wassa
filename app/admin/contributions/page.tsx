@@ -1,22 +1,10 @@
 import Link from "next/link";
 import { adminFetch } from "@/lib/adminAuth";
+import { formatDateTime } from "@/lib/format";
+import type { ContributionView } from "@/lib/transactions";
+import { TxnStatusPill } from "../_components/ReceiptCard";
 
-type ContributionRow = {
-  id: string;
-  donorName: string;
-  donorEmail: string;
-  donorPhone: string;
-  anonymous: boolean;
-  amount: number;
-  currency: string;
-  cause: string;
-  message: string;
-  memberId: string | null;
-  reference: string;
-  status: "initialized" | "success" | "failed" | "abandoned";
-  createdAt: string;
-  completedAt: string | null;
-};
+type ContributionRow = ContributionView;
 
 type Stats = {
   totalRaised: number;
@@ -33,10 +21,22 @@ const TABS = [
   { key: "", label: "All" },
 ] as const;
 
-async function loadRows(status: string): Promise<ContributionRow[]> {
+function query(status: string, search: string): string {
+  const q = new URLSearchParams();
+  if (status) q.set("status", status);
+  if (search) q.set("search", search);
+  const qs = q.toString();
+  return qs ? `?${qs}` : "";
+}
+
+async function loadRows(
+  status: string,
+  search: string
+): Promise<ContributionRow[]> {
   try {
-    const q = status ? `?status=${encodeURIComponent(status)}` : "";
-    return await adminFetch<ContributionRow[]>(`/contributions${q}`);
+    return await adminFetch<ContributionRow[]>(
+      `/contributions${query(status, search)}`
+    );
   } catch {
     return [];
   }
@@ -59,11 +59,15 @@ async function loadStats(): Promise<Stats> {
 export default async function ContributionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; search?: string }>;
 }) {
   const params = await searchParams;
   const active = params.status ?? "success";
-  const [rows, stats] = await Promise.all([loadRows(active), loadStats()]);
+  const search = params.search?.trim() ?? "";
+  const [rows, stats] = await Promise.all([
+    loadRows(active, search),
+    loadStats(),
+  ]);
 
   // Every gift is charged in the currency configured at the time, so read the
   // label off the data rather than hard-coding GHS.
@@ -93,26 +97,50 @@ export default async function ContributionsPage({
         <Stat label="Distinct donors" value={String(stats.donors)} />
       </div>
 
-      <div className="mt-6 inline-flex rounded-lg border border-slate-200 bg-white p-1">
-        {TABS.map((t) => (
-          <Link
-            key={t.label}
-            href={`/admin/contributions${t.key ? `?status=${t.key}` : ""}`}
-            className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-              active === t.key
-                ? "bg-green-900 text-cream"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
+      <div className="mt-6 flex flex-wrap items-center gap-3">
+        <div className="inline-flex rounded-lg border border-slate-200 bg-white p-1">
+          {TABS.map((t) => (
+            <Link
+              key={t.label}
+              href={`/admin/contributions${query(t.key, search)}`}
+              className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                active === t.key
+                  ? "bg-green-900 text-cream"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              {t.label}
+            </Link>
+          ))}
+        </div>
+
+        <form
+          action="/admin/contributions"
+          className="flex flex-1 gap-2 sm:max-w-sm"
+        >
+          <input type="hidden" name="status" value={active} />
+          <input
+            type="search"
+            name="search"
+            defaultValue={search}
+            placeholder="Donor name, email or reference"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700/20"
+          />
+          <button
+            type="submit"
+            className="rounded-lg bg-green-900 px-4 py-2 text-sm font-semibold text-cream hover:bg-green-800"
           >
-            {t.label}
-          </Link>
-        ))}
+            Search
+          </button>
+        </form>
       </div>
 
       <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-200 bg-white">
         {rows.length === 0 ? (
           <div className="px-6 py-16 text-center text-sm text-slate-500">
-            No contributions to show.
+            {search
+              ? `No contributions match “${search}”.`
+              : "No contributions to show."}
           </div>
         ) : (
           <table className="w-full text-left text-sm">
@@ -124,6 +152,7 @@ export default async function ContributionsPage({
                 <th className="px-6 py-3 font-semibold">Reference</th>
                 <th className="px-6 py-3 font-semibold">Status</th>
                 <th className="px-6 py-3 font-semibold">Date</th>
+                <th className="px-6 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -166,10 +195,18 @@ export default async function ContributionsPage({
                     {r.reference}
                   </td>
                   <td className="px-6 py-4">
-                    <StatusPill status={r.status} />
+                    <TxnStatusPill status={r.status} />
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-slate-600">
-                    {new Date(r.completedAt ?? r.createdAt).toLocaleString()}
+                    {formatDateTime(r.completedAt ?? r.createdAt)}
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-4 text-right">
+                    <Link
+                      href={`/admin/contributions/${r.id}`}
+                      className="font-semibold text-green-800 hover:text-green-700"
+                    >
+                      Details &rarr;
+                    </Link>
                   </td>
                 </tr>
               ))}
@@ -191,23 +228,5 @@ function Stat({ label, value }: { label: string; value: string }) {
         {value}
       </div>
     </div>
-  );
-}
-
-function StatusPill({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    success: "bg-emerald-100 text-emerald-800",
-    initialized: "bg-amber-100 text-amber-800",
-    failed: "bg-rose-100 text-rose-800",
-    abandoned: "bg-slate-200 text-slate-700",
-  };
-  return (
-    <span
-      className={`rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider ${
-        colors[status] ?? "bg-slate-100 text-slate-700"
-      }`}
-    >
-      {status}
-    </span>
   );
 }

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 
-type ApproveResponse = {
+export type ApproveResponse = {
   memberId: string;
   applicantId: string;
   emailSent: boolean;
@@ -22,6 +22,69 @@ function IssuedId({ applicantId }: { applicantId: string }) {
       <div className="mt-1 font-mono text-xl font-semibold tracking-[0.15em] text-slate-900">
         {applicantId}
       </div>
+    </div>
+  );
+}
+
+// What happened after an approval — shared with the correction panel, where
+// "Approve instead" ends the same way.
+export function ApprovalResult({ approved }: { approved: ApproveResponse }) {
+  if (approved.emailSent) {
+    return (
+      <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-6">
+        <h2 className="font-display text-xl font-semibold text-emerald-900">
+          Approved &mdash; payment link emailed
+        </h2>
+        <p className="mt-2 text-sm text-emerald-900/80">
+          The applicant will receive an email with their membership ID and a
+          link to pay the membership fee. Their account will activate
+          automatically after payment.
+        </p>
+        <IssuedId applicantId={approved.applicantId} />
+        <Link
+          href="/admin/applications"
+          className="mt-4 inline-flex text-sm font-semibold text-emerald-800 hover:text-emerald-700"
+        >
+          &larr; Back to applications
+        </Link>
+      </div>
+    );
+  }
+  return (
+    <div className="mt-8 rounded-2xl border border-amber-300 bg-amber-50 p-6">
+      <h2 className="font-display text-xl font-semibold text-amber-900">
+        Approved &mdash; but email failed
+      </h2>
+      <p className="mt-2 text-sm text-amber-900/80">
+        {approved.emailError ?? "We couldn't send the approval email."} Share
+        the membership ID and payment link below with the applicant manually
+        &mdash; they have not been told either yet.
+      </p>
+      <IssuedId applicantId={approved.applicantId} />
+      {approved.fallbackPaymentUrl && (
+        <div className="mt-4 flex items-stretch gap-2">
+          <input
+            readOnly
+            value={approved.fallbackPaymentUrl}
+            className="flex-1 rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-mono text-amber-900"
+            onFocus={(e) => e.currentTarget.select()}
+          />
+          <button
+            onClick={() =>
+              navigator.clipboard?.writeText(approved.fallbackPaymentUrl!)
+            }
+            className="rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600"
+          >
+            Copy
+          </button>
+        </div>
+      )}
+      <Link
+        href="/admin/applications"
+        className="mt-4 inline-flex text-sm font-semibold text-amber-800 hover:text-amber-700"
+      >
+        &larr; Back to applications
+      </Link>
     </div>
   );
 }
@@ -61,67 +124,7 @@ export function ReviewActions({ id }: { id: string }) {
     }
   };
 
-  if (approved) {
-    if (approved.emailSent) {
-      return (
-        <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-6">
-          <h2 className="font-display text-xl font-semibold text-emerald-900">
-            Approved &mdash; payment link emailed
-          </h2>
-          <p className="mt-2 text-sm text-emerald-900/80">
-            The applicant will receive an email with their membership ID and a
-            link to pay the membership fee. Their account will activate
-            automatically after payment.
-          </p>
-          <IssuedId applicantId={approved.applicantId} />
-          <Link
-            href="/admin/applications"
-            className="mt-4 inline-flex text-sm font-semibold text-emerald-800 hover:text-emerald-700"
-          >
-            &larr; Back to applications
-          </Link>
-        </div>
-      );
-    }
-    return (
-      <div className="mt-8 rounded-2xl border border-amber-300 bg-amber-50 p-6">
-        <h2 className="font-display text-xl font-semibold text-amber-900">
-          Approved &mdash; but email failed
-        </h2>
-        <p className="mt-2 text-sm text-amber-900/80">
-          {approved.emailError ??
-            "We couldn't send the approval email."}{" "}
-          Share the membership ID and payment link below with the applicant
-          manually &mdash; they have not been told either yet.
-        </p>
-        <IssuedId applicantId={approved.applicantId} />
-        {approved.fallbackPaymentUrl && (
-          <div className="mt-4 flex items-stretch gap-2">
-            <input
-              readOnly
-              value={approved.fallbackPaymentUrl}
-              className="flex-1 rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-mono text-amber-900"
-              onFocus={(e) => e.currentTarget.select()}
-            />
-            <button
-              onClick={() =>
-                navigator.clipboard?.writeText(approved.fallbackPaymentUrl!)
-              }
-              className="rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600"
-            >
-              Copy
-            </button>
-          </div>
-        )}
-        <Link
-          href="/admin/applications"
-          className="mt-4 inline-flex text-sm font-semibold text-amber-800 hover:text-amber-700"
-        >
-          &larr; Back to applications
-        </Link>
-      </div>
-    );
-  }
+  if (approved) return <ApprovalResult approved={approved} />;
 
   return (
     <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6">

@@ -1,9 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { adminFetch } from "@/lib/adminAuth";
+import { formatDateTime } from "@/lib/format";
 import { ReviewActions } from "./ReviewActions";
+import { RectifyDecision } from "./RectifyDecision";
 import { ResendVerification } from "./ResendVerification";
 import { ExperienceBadge } from "../ExperienceBadge";
+
+type Decision = {
+  action: "approved" | "rejected" | "reopened";
+  at: string | null;
+  byName?: string;
+  notes?: string;
+  correction?: boolean;
+};
 
 type AppDetail = {
   _id: string;
@@ -39,6 +49,10 @@ type AppDetail = {
   submittedAt: string;
   reviewedAt?: string;
   reviewNotes?: string;
+  decisionHistory?: Decision[];
+  // The member record an approval created; tells the console whether the
+  // applicant has paid (and so whether the approval can still be withdrawn).
+  linkedMember?: { id: string; status: string } | null;
 };
 
 export default async function ApplicationDetail({
@@ -157,28 +171,88 @@ export default async function ApplicationDetail({
         </div>
       )}
 
+      <DecisionHistory app={app} />
+
       {app.status === "pending" && app.emailVerified && (
         <ReviewActions id={id} />
       )}
 
       {app.status !== "pending" && (
-        <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6">
-          <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Review history
-          </div>
-          <div className="mt-2 text-sm text-slate-700">
-            {app.status === "approved" ? "Approved" : "Rejected"} on{" "}
-            {app.reviewedAt
-              ? new Date(app.reviewedAt).toLocaleString()
-              : "—"}
-          </div>
-          {app.reviewNotes && (
-            <p className="mt-3 whitespace-pre-line text-sm text-slate-600">
-              {app.reviewNotes}
-            </p>
-          )}
-        </div>
+        // Keyed on status so a correction that lands on another decided state
+        // (approved → rejected) starts the panel fresh.
+        <RectifyDecision
+          key={app.status}
+          id={id}
+          status={app.status}
+          applicantName={app.fullName}
+          linkedMember={app.linkedMember ?? null}
+        />
       )}
+    </div>
+  );
+}
+
+const ACTION_LABEL: Record<Decision["action"], string> = {
+  approved: "Approved",
+  rejected: "Rejected",
+  reopened: "Returned to review",
+};
+
+const ACTION_DOT: Record<Decision["action"], string> = {
+  approved: "bg-emerald-500",
+  rejected: "bg-rose-500",
+  reopened: "bg-amber-500",
+};
+
+function DecisionHistory({ app }: { app: AppDetail }) {
+  // Applications decided before the log existed carry only their latest
+  // decision, in reviewedAt/reviewNotes.
+  const entries: Decision[] = app.decisionHistory?.length
+    ? app.decisionHistory
+    : app.status !== "pending"
+      ? [
+          {
+            action: app.status,
+            at: app.reviewedAt ?? null,
+            notes: app.reviewNotes,
+          },
+        ]
+      : [];
+  if (entries.length === 0) return null;
+
+  return (
+    <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6">
+      <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+        Review history
+      </div>
+      <ol className="mt-4 space-y-4">
+        {entries.map((d, i) => (
+          <li key={i} className="flex gap-3">
+            <span
+              className={`mt-1.5 h-2.5 w-2.5 flex-none rounded-full ${ACTION_DOT[d.action]}`}
+            />
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-800">
+                <span className="font-semibold">{ACTION_LABEL[d.action]}</span>
+                <span className="text-slate-600">
+                  {formatDateTime(d.at)}
+                  {d.byName ? ` · ${d.byName}` : ""}
+                </span>
+                {d.correction && (
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-800">
+                    Correction
+                  </span>
+                )}
+              </div>
+              {d.notes && (
+                <p className="mt-1 whitespace-pre-line text-sm text-slate-600">
+                  {d.notes}
+                </p>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }
