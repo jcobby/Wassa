@@ -2,9 +2,21 @@ import Link from "next/link";
 import { adminFetch } from "@/lib/adminAuth";
 
 type AppStats = { pending: number; approved: number; rejected: number };
-type MemberStats = { active: number; suspended: number; total: number };
+type MemberStats = {
+  active: number;
+  suspended: number;
+  pendingPayment: number;
+  total: number;
+};
 type MessageStats = { unread: number; total: number };
-type DuesStats = { year: number; paid: number; arrears: number };
+// Quarterly: a member is in arrears when a quarter that has already started is
+// unpaid (and not waived or turned off) — the same rule as their dues page.
+type DuesStats = {
+  year: number;
+  activeMembers: number;
+  membersOwing: number;
+  quartersOwed: number;
+};
 
 async function safe<T>(path: string, fallback: T): Promise<T> {
   try {
@@ -22,9 +34,19 @@ export default async function AdminDashboard() {
       approved: 0,
       rejected: 0,
     }),
-    safe<MemberStats>("/members/stats", { active: 0, suspended: 0, total: 0 }),
+    safe<MemberStats>("/members/stats", {
+      active: 0,
+      suspended: 0,
+      pendingPayment: 0,
+      total: 0,
+    }),
     safe<MessageStats>("/messages/stats", { unread: 0, total: 0 }),
-    safe<DuesStats>(`/dues/stats?year=${year}`, { year, paid: 0, arrears: 0 }),
+    safe<DuesStats>(`/dues/stats?year=${year}`, {
+      year,
+      activeMembers: 0,
+      membersOwing: 0,
+      quartersOwed: 0,
+    }),
   ]);
 
   const cards = [
@@ -49,11 +71,11 @@ export default async function AdminDashboard() {
       accent: messages.unread > 0,
     },
     {
-      label: `Dues Arrears (${year})`,
-      value: dues.arrears,
-      href: `/admin/dues?year=${year}&view=arrears`,
-      cta: "View arrears",
-      accent: dues.arrears > 0,
+      label: `Members Owing Dues (${year})`,
+      value: dues.membersOwing,
+      href: `/admin/dues?year=${year}&view=owing`,
+      cta: `${dues.quartersOwed} quarter${dues.quartersOwed === 1 ? "" : "s"} overdue`,
+      accent: dues.membersOwing > 0,
     },
   ];
 
@@ -86,7 +108,12 @@ export default async function AdminDashboard() {
         ))}
       </div>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-3">
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Stat
+          label="Approved, awaiting payment"
+          value={members.pendingPayment}
+          href="/admin/members?status=pending_payment"
+        />
         <Stat label="Approved" value={apps.approved} />
         <Stat label="Rejected" value={apps.rejected} />
         <Stat label="Suspended Members" value={members.suspended} />
@@ -95,15 +122,33 @@ export default async function AdminDashboard() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
+function Stat({
+  label,
+  value,
+  href,
+}: {
+  label: string;
+  value: number;
+  href?: string;
+}) {
+  const body = (
+    <>
       <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
         {label}
       </div>
       <div className="mt-2 font-display text-2xl font-semibold text-slate-800">
         {value}
       </div>
-    </div>
+    </>
+  );
+  return href ? (
+    <Link
+      href={href}
+      className="block rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-md"
+    >
+      {body}
+    </Link>
+  ) : (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5">{body}</div>
   );
 }

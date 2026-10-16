@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { adminFetch } from "@/lib/adminAuth";
 import { paymentReceipt, type PaymentDetail } from "@/lib/transactions";
 import { ReceiptCard } from "../../_components/ReceiptCard";
-import { SaveAsPdf } from "../../_components/SaveAsPdf";
+import { SaveAsPdf } from "@/components/SaveAsPdf";
 
 export default async function PaymentReceiptPage({
   params,

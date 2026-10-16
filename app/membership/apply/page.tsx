@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -149,19 +149,93 @@ const INITIAL: FormData = {
   nextOfKinContact: "",
 };
 
+// ── Saved progress ──────────────────────────────────────────────
+// Answers are kept on this device as the applicant goes, so a refresh, a lost
+// connection, or the phone reloading the tab after a switch to WhatsApp never
+// sends them back to an empty form.
+const DRAFT_KEY = "wpn-apply-draft-v1";
+const DRAFT_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+type Draft = { data: FormData; step: number; savedAt: number };
+
+function readStorage(): string | null {
+  try {
+    return window.localStorage.getItem(DRAFT_KEY);
+  } catch {
+    return null; // private mode, blocked storage
+  }
+}
+
+// The draft found when the page first loaded, read once per visit: later
+// saves must not turn into a "continue where you left off?" prompt mid-form.
+let draftAtLoad: string | null | undefined;
+const readDraftAtLoad = () => {
+  if (draftAtLoad === undefined) draftAtLoad = readStorage();
+  return draftAtLoad;
+};
+const noSubscription = () => () => {};
+
+function parseDraft(raw: string | null): Draft | null {
+  if (!raw) return null;
+  try {
+    const d = JSON.parse(raw) as Partial<Draft>;
+    if (!d.data || typeof d.savedAt !== "number") return null;
+    if (Date.now() - d.savedAt > DRAFT_TTL_MS) return null;
+    // Only known fields, with the right shapes — never trust stored data.
+    const data = { ...INITIAL };
+    for (const key of Object.keys(INITIAL) as (keyof FormData)[]) {
+      const v = (d.data as Record<string, unknown>)[key];
+      if (Array.isArray(INITIAL[key])) {
+        if (Array.isArray(v)) (data[key] as string[]) = v.filter((x) => typeof x === "string");
+      } else if (typeof v === "string") {
+        (data[key] as string) = v;
+      }
+    }
+    const step = Math.min(Math.max(Number(d.step) || 0, 0), STEPS.length - 1);
+    return { data, step, savedAt: d.savedAt };
+  } catch {
+    return null;
+  }
+}
+
+function writeDraft(draft: Draft) {
+  try {
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    // Storage full or blocked — the form still works, just without saving.
+  }
+}
+
+function clearDraft() {
+  draftAtLoad = null;
+  try {
+    window.localStorage.removeItem(DRAFT_KEY);
+  } catch {
+    // nothing to clear
+  }
+}
+
 function isValidPhone(value: string): boolean {
   const digits = value.replace(/[\s\-+().]/g, "");
   return /^\d{7,15}$/.test(digits);
 }
 
+// The same rule the server applies, so an address the form accepts can't then
+// be rejected at the final submit.
 function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  return /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i.test(
+    value.trim()
+  );
 }
 
+// Every rule below mirrors the server's, so nothing passes all five steps and
+// then fails on "Submit Application".
 function validate(step: number, data: FormData): string[] {
   const errs: string[] = [];
   if (step === 0) {
     if (!data.fullName.trim()) errs.push("Full name is required.");
+    else if (data.fullName.trim().length < 2)
+      errs.push("Please enter your full name.");
     if (!data.title) errs.push("Title is required.");
     if (data.title === "Other" && !data.titleOther.trim())
       errs.push("Please specify your title.");
@@ -211,9 +285,16 @@ function validate(step: number, data: FormData): string[] {
     }
     if (data.areasOfInterest.length === 0)
       errs.push("Please select at least one area of interest.");
+    if (
+      data.areasOfInterest.includes("Other") &&
+      !data.areasOfInterestOther.trim()
+    )
+      errs.push("Please specify your “Other” area of interest.");
   }
   if (step === 4) {
     if (!data.nextOfKinName.trim()) errs.push("Next of kin's full name is required.");
+    else if (data.nextOfKinName.trim().length < 2)
+      errs.push("Please enter your next of kin's full name.");
     if (!data.nextOfKinRelationship) errs.push("Relationship is required.");
     if (!data.nextOfKinContact.trim()) {
       errs.push("Contact of next of kin is required.");
@@ -223,6 +304,35 @@ function validate(step: number, data: FormData): string[] {
   }
   return errs;
 }
+
+// Where each field the server checks lives in the form, so a rejected
+// submission can say which step to fix.
+const FIELD_STEP: Record<string, [label: string, step: number]> = {
+  fullName: ["Full name", 0],
+  title: ["Title", 0],
+  titleOther: ["Title", 0],
+  gender: ["Gender", 1],
+  dateOfBirth: ["Date of birth", 1],
+  mobileNumbers: ["Mobile number", 1],
+  email: ["Email address", 1],
+  postalAddress: ["Postal address", 1],
+  cityOfResidence: ["City/Town of residence", 1],
+  countryOfResidence: ["Country of residence", 1],
+  homeCountry: ["Home country", 2],
+  hometown: ["Hometown", 2],
+  fathersHometown: ["Father's hometown", 2],
+  fathersEthnicGroup: ["Father's ethnic group", 2],
+  mothersHometown: ["Mother's hometown", 2],
+  mothersEthnicGroup: ["Mother's ethnic group", 2],
+  occupation: ["Occupation", 3],
+  currentPlaceOfWork: ["Current place of work", 3],
+  jobTitle: ["Job title", 3],
+  educationalBackground: ["Educational background", 3],
+  workExperience: ["Work experience", 3],
+  yearsOfExperience: ["Years of experience", 3],
+  areasOfInterest: ["Areas of interest", 3],
+  nextOfKin: ["Next of kin", 4],
+};
 
 // ── Review helpers ──────────────────────────────────────────────
 function ReviewSection({
@@ -279,10 +389,62 @@ export default function Apply() {
   const [submitting, setSubmitting] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [verifyUrl, setVerifyUrl] = useState<string | null>(null);
+  // The step holding the first answer to fix, and whether the problem was a
+  // duplicate application or too many attempts — each gets its own way out.
+  const [errorStep, setErrorStep] = useState<number | null>(null);
+  const [errorKind, setErrorKind] = useState<"conflict" | "rate" | null>(null);
   const formTopRef = useRef<HTMLDivElement>(null);
+
+  // A draft from an earlier visit waits for the applicant to choose: pick it
+  // up, or start a new application. (Read on the client only — the server
+  // render sees no draft.)
+  const savedRaw = useSyncExternalStore(noSubscription, readDraftAtLoad, () => null);
+  const saved = useMemo(() => parseDraft(savedRaw), [savedRaw]);
+  const [draftDecided, setDraftDecided] = useState(false);
+  const resumePending = saved !== null && !draftDecided;
+
+  // Save as they go — but never over an earlier draft they haven't decided
+  // about yet, and not once the application is in.
+  useEffect(() => {
+    if (resumePending || submitted) return;
+    const untouched =
+      step === 0 && JSON.stringify(data) === JSON.stringify(INITIAL);
+    if (!untouched) writeDraft({ data, step, savedAt: Date.now() });
+  }, [data, step, resumePending, submitted]);
 
   const scrollToForm = () => {
     formTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const showErrors = (
+    messages: string[],
+    opts: { step?: number; kind?: "conflict" | "rate" } = {}
+  ) => {
+    setErrors(messages);
+    setErrorStep(opts.step ?? null);
+    setErrorKind(opts.kind ?? null);
+    scrollToForm();
+  };
+
+  const clearErrors = () => {
+    setErrors([]);
+    setErrorStep(null);
+    setErrorKind(null);
+  };
+
+  const resumeDraft = () => {
+    if (!saved) return;
+    setData(saved.data);
+    setStep(saved.step);
+    setDraftDecided(true);
+    scrollToForm();
+  };
+
+  const discardDraft = () => {
+    clearDraft();
+    setData(INITIAL);
+    setStep(0);
+    setDraftDecided(true);
   };
 
   const set = (field: keyof FormData, value: string) =>
@@ -303,7 +465,7 @@ export default function Apply() {
     });
 
   const goToStep = (s: number) => {
-    setErrors([]);
+    clearErrors();
     setStep(s);
     scrollToForm();
   };
@@ -346,15 +508,28 @@ export default function Apply() {
       nextOfKinRelationship: "Spouse",
       nextOfKinContact: "+233 24 111 1111",
     });
-    setErrors([]);
+    clearErrors();
     setSubmitted(false);
     setVerifyUrl(null);
     setEmailSent(false);
   };
 
   const submitToApi = async () => {
+    // Re-check every step: an answer edited after it was first checked must
+    // not reach the server only to be rejected there.
+    const problems = STEPS.slice(0, -1).flatMap((_, s) =>
+      validate(s, data).map((msg) => ({ s, msg }))
+    );
+    if (problems.length) {
+      showErrors(
+        problems.map((p) => `${STEPS[p.s]}: ${p.msg}`),
+        { step: problems[0].s }
+      );
+      return;
+    }
+
     setSubmitting(true);
-    setErrors([]);
+    clearErrors();
     try {
       const title = data.title === "Other" ? "Other" : data.title.replace(/\.$/, "");
       const interests = [
@@ -408,14 +583,36 @@ export default function Apply() {
       setEmailSent(Boolean(out.emailSent));
       setVerifyUrl(out.verifyUrl ?? null);
       setSubmitted(true);
+      clearDraft();
       scrollToForm();
     } catch (err) {
-      const msg =
-        err instanceof ApiError
-          ? err.message
-          : "We couldn't submit your application. Please try again.";
-      setErrors([msg]);
-      scrollToForm();
+      if (!(err instanceof ApiError)) {
+        showErrors([
+          "We couldn't reach the server. Check your connection and press Submit again — your answers are saved.",
+        ]);
+        return;
+      }
+      // The server names the fields it rejected; turn them into answers to
+      // fix and the step they're on, instead of a bare "Validation failed".
+      const fields = Object.keys(
+        (err.details as { fieldErrors?: Record<string, string[]> } | undefined)
+          ?.fieldErrors ?? {}
+      );
+      if (err.status === 400 && fields.length) {
+        const found = fields.map((f) => FIELD_STEP[f]).filter(Boolean);
+        showErrors(
+          found.length
+            ? found.map(([label, s]) => `${STEPS[s]}: please check “${label}”.`)
+            : ["Some answers need another look. Please review each step."],
+          found.length ? { step: Math.min(...found.map(([, s]) => s)) } : {}
+        );
+      } else if (err.status === 409) {
+        showErrors([err.message], { kind: "conflict" });
+      } else if (err.status === 429) {
+        showErrors([err.message], { kind: "rate" });
+      } else {
+        showErrors([err.message]);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -429,18 +626,17 @@ export default function Apply() {
     }
     const errs = validate(step, data);
     if (errs.length) {
-      setErrors(errs);
-      scrollToForm();
+      showErrors(errs);
       return;
     }
-    setErrors([]);
+    clearErrors();
     setStep((s) => s + 1);
     setSubmitted(false);
     scrollToForm();
   };
 
   const back = () => {
-    setErrors([]);
+    clearErrors();
     setStep((s) => s - 1);
     setSubmitted(false);
     scrollToForm();
@@ -636,6 +832,70 @@ export default function Apply() {
     );
   }
 
+  // Came back to an application started earlier on this device.
+  if (resumePending && saved) {
+    const savedOn = new Date(saved.savedAt).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+    });
+    return (
+      <main className="min-h-screen bg-cream">
+        <Navbar />
+        <section className="bg-green-950 pb-10 pt-32 texture-grain">
+          <div className="mx-auto max-w-3xl px-6">
+            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-400">
+              Membership Application
+            </div>
+            <h1 className="mt-3 font-display text-4xl font-semibold text-cream sm:text-5xl">
+              Welcome <span className="italic text-gold-400">back</span>
+            </h1>
+          </div>
+        </section>
+        <div className="mx-auto max-w-3xl px-6 py-12">
+          <div className="rounded-3xl border-2 border-gold-400/50 bg-white p-6 sm:p-8">
+            <h2 className="font-display text-2xl font-semibold text-green-950">
+              Continue where you left off?
+            </h2>
+            <p className="mt-2 text-[15px] leading-relaxed text-green-900/75">
+              You started an application
+              {saved.data.fullName.trim() ? ` as ${saved.data.fullName.trim()}` : ""} on{" "}
+              {savedOn} and reached step {saved.step + 1} of {STEPS.length} &mdash;{" "}
+              <span className="font-semibold">{STEPS[saved.step]}</span>. Your
+              answers were saved on this device, so nothing needs retyping.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={resumeDraft}
+                className="rounded-full bg-gold-500 px-7 py-3 text-sm font-semibold text-green-950 shadow-lg shadow-gold-500/20 transition-all hover:-translate-y-0.5 hover:bg-gold-400"
+              >
+                Continue my application
+              </button>
+              <button
+                type="button"
+                onClick={discardDraft}
+                className="rounded-full border border-green-900/20 px-7 py-3 text-sm font-semibold text-green-900 transition-colors hover:border-green-700"
+              >
+                Start a new one
+              </button>
+            </div>
+            <p className="mt-5 text-xs text-green-900/55">
+              Already submitted it?{" "}
+              <Link
+                href="/membership/continue"
+                className="font-semibold text-green-800 underline hover:text-gold-600"
+              >
+                Get your confirmation or payment link
+              </Link>{" "}
+              instead.
+            </p>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-cream">
       <Navbar />
@@ -730,11 +990,15 @@ export default function Apply() {
           </div>
         )}
 
-        {step < STEPS.length - 1 && (
-          <p className="mb-8 text-sm text-green-900/60">
-            <span className="text-red-500">*</span> Indicates required question
-          </p>
-        )}
+        <p className="mb-8 text-sm text-green-900/60">
+          {step < STEPS.length - 1 && (
+            <>
+              <span className="text-red-500">*</span> Indicates required
+              question &middot;{" "}
+            </>
+          )}
+          Your answers are saved on this device as you go.
+        </p>
 
         {errors.length > 0 && (
           <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
@@ -743,6 +1007,32 @@ export default function Apply() {
                 <li key={e} className="text-sm text-red-700">{e}</li>
               ))}
             </ul>
+            {errorStep !== null && errorStep !== step && (
+              <button
+                type="button"
+                onClick={() => goToStep(errorStep)}
+                className="mt-3 rounded-full bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600"
+              >
+                Go to {STEPS[errorStep]} to fix it
+              </button>
+            )}
+            {errorKind === "conflict" && (
+              <p className="mt-3 text-sm text-red-800">
+                <Link href="/membership/continue" className="font-semibold underline">
+                  Get your confirmation or payment link again
+                </Link>{" "}
+                &middot;{" "}
+                <Link href="/login" className="font-semibold underline">
+                  Sign in
+                </Link>
+              </p>
+            )}
+            {errorKind === "rate" && (
+              <p className="mt-2 text-sm text-red-800/80">
+                Your answers are saved on this device, so you can come back and
+                submit later without retyping anything.
+              </p>
+            )}
           </div>
         )}
 

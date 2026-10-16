@@ -5,7 +5,7 @@ import { MemberActions } from "./MemberActions";
 import { ResendEmail } from "./ResendEmail";
 import { DuesManager } from "./DuesManager";
 import { Statement } from "./Statement";
-import { PrintHeader } from "../../_components/PrintHeader";
+import { PrintHeader } from "@/components/PrintHeader";
 
 type MemberDetail = {
   _id: string;
@@ -140,7 +140,7 @@ export default async function MemberDetailPage({
             <MemberActions id={id} status={m.status} />
           )}
 
-        {m.role !== "admin" && <DuesManager id={id} />}
+        {m.role !== "admin" && <DuesManager id={id} memberName={m.fullName} />}
       </div>
 
       <Statement id={id} showAll={txns === "all"} />

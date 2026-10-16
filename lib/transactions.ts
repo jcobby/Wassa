@@ -22,7 +22,13 @@ export type PaymentView = {
   purpose: "membership_initial" | "dues_renewal";
   year: number;
   quarter: number | null;
+  // Paystack's channel code, or the method an admin typed for a hand-recorded
+  // payment ("Cash").
   channel: string | null;
+  // Recorded by an admin (cash, bank transfer, …) rather than paid on Paystack.
+  manual: boolean;
+  // The admin's receipt number for a hand-recorded payment.
+  externalReference: string;
   createdAt: string | null;
   completedAt: string | null;
 };
@@ -184,7 +190,9 @@ export function paymentReceipt(p: PaymentDetail): Receipt {
   const what = coverage(p);
   const when = formatDate(p.completedAt ?? p.createdAt);
   const summary = {
-    success: `Payment received and confirmed on ${when}. It covers ${what}.`,
+    success: p.manual
+      ? `Payment received by the Secretariat on ${when} and recorded by an admin. It covers ${what}.`
+      : `Payment received and confirmed on ${when}. It covers ${what}.`,
     initialized: `A checkout for ${what} was opened on ${when} but has not been completed. No money has been received for this transaction.`,
     failed: `This attempt to pay ${what} failed on ${when}, and no money was taken.${
       p.gatewayResponse ? ` Paystack's reason: “${p.gatewayResponse}”.` : ""
@@ -210,6 +218,9 @@ export function paymentReceipt(p: PaymentDetail): Receipt {
   );
   const method = channelLabel(p.channel);
   if (method) rows.push({ label: "Method", value: method });
+  if (p.externalReference) {
+    rows.push({ label: "Receipt no.", value: p.externalReference, mono: true });
+  }
   // Paystack, and the member's MoMo or bank statement, only know a multi-quarter
   // checkout by its shared reference.
   rows.push({
@@ -300,7 +311,9 @@ export function statementLines(t: MemberTransactions): StatementLine[] {
     ...t.payments.map((p) => ({
       key: `p-${p.id}`,
       date: p.completedAt ?? p.createdAt,
-      description: paymentDescription(p),
+      description: p.manual
+        ? `${paymentDescription(p)} (recorded by admin)`
+        : paymentDescription(p),
       amount: p.amount,
       currency: p.currency,
       status: p.status,

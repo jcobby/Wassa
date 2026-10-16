@@ -97,6 +97,9 @@ export function ReviewActions({ id }: { id: string }) {
   );
   const [error, setError] = useState<string | null>(null);
   const [approved, setApproved] = useState<ApproveResponse | null>(null);
+  // Rejections email the applicant by default; untick for spam or duplicates.
+  const [notifyOnReject, setNotifyOnReject] = useState(true);
+  const [rejectEmailFailed, setRejectEmailFailed] = useState<string | null>(null);
 
   const act = async (kind: "approve" | "reject") => {
     setSubmitting(kind);
@@ -112,8 +115,16 @@ export function ReviewActions({ id }: { id: string }) {
         // admin can read it / copy the fallback payment link.
         setApproved(out);
       } else {
-        await api.patch(`/applications/${id}/reject`, { notes });
-        router.refresh();
+        const out = await api.patch<{ notified: boolean; notifyError?: string }>(
+          `/applications/${id}/reject`,
+          { notes, notifyApplicant: notifyOnReject }
+        );
+        if (notifyOnReject && !out.notified) {
+          // Hold the page so the admin knows to tell the applicant directly.
+          setRejectEmailFailed(out.notifyError ?? "We couldn't send the email.");
+        } else {
+          router.refresh();
+        }
       }
     } catch (err) {
       setError(
@@ -126,13 +137,35 @@ export function ReviewActions({ id }: { id: string }) {
 
   if (approved) return <ApprovalResult approved={approved} />;
 
+  if (rejectEmailFailed !== null) {
+    return (
+      <div className="mt-8 rounded-2xl border border-amber-300 bg-amber-50 p-6">
+        <h2 className="font-display text-xl font-semibold text-amber-900">
+          Rejected &mdash; but the email failed
+        </h2>
+        <p className="mt-2 text-sm text-amber-900/80">
+          {rejectEmailFailed} The application is recorded as rejected, but the
+          applicant hasn&apos;t been told. Please let them know directly.
+        </p>
+        <button
+          type="button"
+          onClick={() => router.refresh()}
+          className="mt-4 rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600"
+        >
+          Continue
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6">
       <h2 className="font-display text-xl font-semibold">Review decision</h2>
       <p className="mt-1 text-sm text-slate-600">
         Add optional notes for the record, then approve or reject. Approval
         emails the applicant a link to pay the membership fee; their account
-        activates automatically after payment.
+        activates automatically after payment. Notes stay internal &mdash;
+        they&apos;re never included in emails.
       </p>
       <textarea
         rows={3}
@@ -162,6 +195,18 @@ export function ReviewActions({ id }: { id: string }) {
           {submitting === "reject" ? "Rejecting…" : "Reject"}
         </button>
       </div>
+      <label className="mt-4 flex items-start gap-2 text-sm text-slate-700">
+        <input
+          type="checkbox"
+          checked={notifyOnReject}
+          onChange={(e) => setNotifyOnReject(e.target.checked)}
+          className="mt-0.5 h-4 w-4 accent-green-800"
+        />
+        <span>
+          If rejecting, email the applicant to let them know. Untick for spam
+          or duplicate applications.
+        </span>
+      </label>
     </div>
   );
 }

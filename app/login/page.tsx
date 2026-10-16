@@ -21,6 +21,19 @@ function LoginContent() {
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Set when sign-in failed because they never paid or never set a password —
+  // the fix is a fresh link, which they can have emailed right from here.
+  const [needsLink, setNeedsLink] = useState(false);
+  const [resend, setResend] = useState<"idle" | "sending" | "sent">("idle");
+  // Wrong email or password — for someone who never finished applying, that's
+  // the error they'll see, so point them at the "resend my link" box.
+  const [badCredentials, setBadCredentials] = useState(false);
+  // The always-visible "applied but can't sign in yet?" box. Its email follows
+  // the sign-in field until they type in it.
+  const [promptEmail, setPromptEmail] = useState<string | null>(null);
+  const [prompt, setPrompt] = useState<"idle" | "sending" | "sent">("idle");
+  const [promptError, setPromptError] = useState<string | null>(null);
+  const promptAddress = (promptEmail ?? form.email).trim();
 
   // Already signed in? Skip the form — send them to their area.
   useEffect(() => {
@@ -32,8 +45,50 @@ function LoginContent() {
       });
   }, [router]);
 
+  const resendLink = async () => {
+    setResend("sending");
+    try {
+      await api.post("/applications/resume", {
+        email: form.email.trim().toLowerCase(),
+      });
+      setResend("sent");
+    } catch (err) {
+      setResend("idle");
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Couldn't send the link. Please try again."
+      );
+    }
+  };
+
+  const resendFromPrompt = async () => {
+    setPromptError(null);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(promptAddress)) {
+      setPromptError("Enter the email address you applied with.");
+      return;
+    }
+    setPrompt("sending");
+    try {
+      await api.post("/applications/resume", {
+        email: promptAddress.toLowerCase(),
+      });
+      setPrompt("sent");
+    } catch (err) {
+      setPrompt("idle");
+      setPromptError(
+        err instanceof ApiError
+          ? err.message
+          : "Couldn't send the link. Please try again."
+      );
+    }
+  };
+
   const submit = async () => {
     setError(null);
+    setNeedsLink(false);
+    setBadCredentials(false);
+    setResend("idle");
     if (!form.email || !form.password) {
       setError("Please enter your email and password.");
       return;
@@ -56,6 +111,12 @@ function LoginContent() {
       setError(
         err instanceof ApiError ? err.message : "Sign in failed. Please try again."
       );
+      const code =
+        err instanceof ApiError
+          ? (err.details as { code?: string } | undefined)?.code
+          : undefined;
+      setNeedsLink(code === "pending_payment" || code === "password_not_set");
+      setBadCredentials(err instanceof ApiError && err.status === 401);
       setLoading(false);
     }
   };
@@ -195,6 +256,30 @@ function LoginContent() {
                 {error && (
                   <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
                     {error}
+                    {needsLink &&
+                      (resend === "sent" ? (
+                        <p className="mt-2 font-medium text-emerald-700">
+                          Sent &mdash; check your inbox (and spam) for the link.
+                        </p>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={resendLink}
+                          disabled={resend === "sending"}
+                          className="mt-3 block rounded-lg bg-green-900 px-4 py-2 font-semibold text-cream hover:bg-green-800 disabled:opacity-60"
+                        >
+                          {resend === "sending"
+                            ? "Sending…"
+                            : "Email me the link again"}
+                        </button>
+                      ))}
+                    {badCredentials && (
+                      <p className="mt-2 text-red-700/80">
+                        Haven&apos;t finished applying yet? Use{" "}
+                        <span className="font-semibold">Resend my link</span>{" "}
+                        below.
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -233,6 +318,66 @@ function LoginContent() {
                     Apply for membership
                   </Link>
                 </p>
+                {/* For applicants who stopped part-way: they have no password
+                    yet, so signing in can't help — a fresh link can. */}
+                <div
+                  className={`rounded-2xl border p-5 transition-colors ${
+                    badCredentials || needsLink
+                      ? "border-gold-500 bg-gold-400/15"
+                      : "border-gold-400/50 bg-gold-400/10"
+                  }`}
+                >
+                  <div className="font-display text-base font-semibold text-green-950">
+                    Applied but can&apos;t sign in yet?
+                  </div>
+                  <p className="mt-1 text-sm text-green-900/70">
+                    If you haven&apos;t confirmed your email, paid the
+                    registration fee, or set your password, we&apos;ll email
+                    you the link to carry on from where you stopped.
+                  </p>
+                  {prompt === "sent" ? (
+                    <p className="mt-3 text-sm font-medium text-emerald-700">
+                      If there&apos;s an application in progress for{" "}
+                      {promptAddress}, the link is on its way. Check your spam
+                      folder too.
+                    </p>
+                  ) : (
+                    <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                      <input
+                        type="email"
+                        autoComplete="email"
+                        className={`${field} sm:flex-1`}
+                        placeholder="Email you applied with"
+                        value={promptEmail ?? form.email}
+                        onChange={(e) => setPromptEmail(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") resendFromPrompt();
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={resendFromPrompt}
+                        disabled={prompt === "sending"}
+                        className="rounded-xl bg-green-900 px-5 py-3 text-sm font-semibold text-cream transition-colors hover:bg-green-800 disabled:opacity-60"
+                      >
+                        {prompt === "sending" ? "Sending…" : "Resend my link"}
+                      </button>
+                    </div>
+                  )}
+                  {promptError && (
+                    <p className="mt-2 text-sm text-red-700">{promptError}</p>
+                  )}
+                  <p className="mt-3 text-xs text-green-900/55">
+                    Started the form but never submitted it? Open{" "}
+                    <Link
+                      href="/membership/apply"
+                      className="font-semibold text-green-800 underline hover:text-gold-600"
+                    >
+                      Apply for membership
+                    </Link>{" "}
+                    on the same device &mdash; your answers are saved there.
+                  </p>
+                </div>
               </div>
             </div>
 

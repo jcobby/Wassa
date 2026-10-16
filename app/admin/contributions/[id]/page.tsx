@@ -6,7 +6,7 @@ import {
   type ContributionDetail,
 } from "@/lib/transactions";
 import { ReceiptCard } from "../../_components/ReceiptCard";
-import { SaveAsPdf } from "../../_components/SaveAsPdf";
+import { SaveAsPdf } from "@/components/SaveAsPdf";
 
 export default async function ContributionReceiptPage({
   params,

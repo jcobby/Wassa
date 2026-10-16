@@ -14,7 +14,7 @@ import {
   type LedgerQuery,
 } from "../_components/LedgerFilters";
 import { ReportPanel } from "../_components/ReportPanel";
-import { PrintHeader } from "../_components/PrintHeader";
+import { PrintHeader } from "@/components/PrintHeader";
 
 type Stats = {
   totalRaised: number;

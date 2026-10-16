@@ -73,6 +73,10 @@ export async function adminFetch<T>(
   return body as T;
 }
 
+// The same cookie-forwarding fetch, for pages any signed-in member can open
+// (their dashboard). The API decides what each role may see.
+export const authFetch = adminFetch;
+
 function safeJson(text: string): unknown {
   try {
     return JSON.parse(text);

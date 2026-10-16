@@ -9,7 +9,7 @@ import {
   type MemberTransactions,
 } from "@/lib/transactions";
 import { TxnStatusPill } from "../../_components/ReceiptCard";
-import { SaveAsPdf } from "../../_components/SaveAsPdf";
+import { SaveAsPdf } from "@/components/SaveAsPdf";
 
 // Everything a member has paid, as one statement the admin can walk them
 // through or save as a PDF. Unfinished checkouts are hidden by default —

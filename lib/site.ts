@@ -27,7 +27,9 @@ export const site = {
   ],
 };
 
-// Fee structure — set by the General Assembly. Displayed to members/applicants.
+// Fee structure — set by the General Assembly. Public pages show the live
+// amounts from admin Settings (lib/fees.ts); these are only the fallback for
+// when the API can't be reached, so keep them in step with Settings.
 export const fees = {
   currency: "GH₵",
   registration: 100, // one-time, on admission
@@ -73,6 +75,7 @@ export const nav: NavItem[] = [
     children: [
       { label: "Requirements", href: "/membership" },
       { label: "Apply for Membership", href: "/membership/apply" },
+      { label: "Continue an Application", href: "/membership/continue" },
       { label: "Dues Payment", href: "/dashboard/dues" },
     ],
   },

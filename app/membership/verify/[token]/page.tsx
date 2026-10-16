@@ -105,12 +105,20 @@ export default function VerifyEmailPage({
                     Couldn&apos;t confirm email
                   </h1>
                   <p className="mt-3 text-sm text-green-900/70">{state.message}</p>
-                  <Link
-                    href="/contact"
-                    className="mt-7 inline-flex rounded-full border border-green-900/20 px-7 py-3 text-sm font-semibold text-green-900 transition-colors hover:border-green-700"
-                  >
-                    Contact the General Secretary
-                  </Link>
+                  <div className="mt-7 flex flex-wrap justify-center gap-3">
+                    <Link
+                      href="/membership/continue"
+                      className="inline-flex rounded-full bg-gold-500 px-7 py-3 text-sm font-semibold text-green-950 transition-all hover:-translate-y-0.5 hover:bg-gold-400"
+                    >
+                      Send me a new link
+                    </Link>
+                    <Link
+                      href="/contact"
+                      className="inline-flex rounded-full border border-green-900/20 px-7 py-3 text-sm font-semibold text-green-900 transition-colors hover:border-green-700"
+                    >
+                      Contact the General Secretary
+                    </Link>
+                  </div>
                 </>
               )}
             </div>

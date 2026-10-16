@@ -2,6 +2,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { PayButton } from "./PayButton";
+import { RenewLink } from "./RenewLink";
 
 type Access = {
   memberId: string;
@@ -48,6 +49,25 @@ export default async function PaymentLanding({
   const { token } = await params;
   const result = await loadAccess(token);
 
+  // Expired: the link still identifies the applicant, so they can have a fresh
+  // one emailed in a click.
+  if (!result.ok && result.status === 410) {
+    return (
+      <Shell>
+        <div className="rounded-3xl border border-cream/10 bg-cream p-8 text-center sm:p-10">
+          <h1 className="font-display text-2xl font-semibold text-green-950">
+            This payment link has expired
+          </h1>
+          <p className="mt-3 text-sm text-green-900/70">
+            Payment links stay open for 14 days. Your approval still stands
+            &mdash; get a new link and you can pay straight away.
+          </p>
+          <RenewLink token={token} />
+        </div>
+      </Shell>
+    );
+  }
+
   if (!result.ok) {
     return (
       <Shell>
@@ -57,14 +77,23 @@ export default async function PaymentLanding({
           </h1>
           <p className="mt-3 text-sm text-green-900/70">{result.message}</p>
           <p className="mt-4 text-sm text-green-900/55">
-            Please contact the General Secretary for a new link.
+            You may have been sent a newer link. Enter your email and
+            we&apos;ll send you the latest one.
           </p>
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex rounded-full bg-green-900 px-6 py-3 text-sm font-semibold text-cream hover:bg-green-800"
-          >
-            Contact WPN
-          </Link>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Link
+              href="/membership/continue"
+              className="inline-flex rounded-full bg-gold-500 px-6 py-3 text-sm font-semibold text-green-950 hover:bg-gold-400"
+            >
+              Get my payment link
+            </Link>
+            <Link
+              href="/contact"
+              className="inline-flex rounded-full border border-green-900/20 px-6 py-3 text-sm font-semibold text-green-900 hover:border-green-700"
+            >
+              Contact WPN
+            </Link>
+          </div>
         </div>
       </Shell>
     );
@@ -175,9 +204,9 @@ export default async function PaymentLanding({
         <PayButton token={token} />
 
         <p className="mt-6 text-xs text-green-900/55">
-          You'll be taken to Paystack to complete payment securely. After
-          payment, your login credentials will be shown here and emailed to{" "}
-          {data.email}.
+          You&apos;ll be taken to Paystack to complete payment securely. After
+          payment you&apos;ll choose your own password &mdash; the link appears
+          on screen and is emailed to {data.email}.
         </p>
       </div>
     </Shell>

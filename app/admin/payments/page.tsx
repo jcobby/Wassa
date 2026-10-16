@@ -16,7 +16,7 @@ import {
   type LedgerQuery,
 } from "../_components/LedgerFilters";
 import { ReportPanel } from "../_components/ReportPanel";
-import { PrintHeader } from "../_components/PrintHeader";
+import { PrintHeader } from "@/components/PrintHeader";
 
 // "all" is explicit: with no status at all the page falls back to Successful.
 const TABS = [

@@ -87,7 +87,7 @@ export function LedgerFilters({
         className="mt-4 flex flex-wrap items-end gap-3"
       >
         <input type="hidden" name="status" value={query.status} />
-        <label className="flex min-w-[12rem] flex-1 flex-col gap-1 sm:max-w-xs">
+        <label className="flex min-w-48 flex-1 flex-col gap-1 sm:max-w-xs">
           <span className={fieldLabel}>Search</span>
           <input
             type="search"

@@ -1,5 +1,5 @@
 import type { ReportSummary } from "@/lib/transactions";
-import { SaveAsPdf } from "./SaveAsPdf";
+import { SaveAsPdf } from "@/components/SaveAsPdf";
 
 // Totals for a dated ledger view: what came in, from how many, and on what.
 // Prints as the top of the saved report, above the table.

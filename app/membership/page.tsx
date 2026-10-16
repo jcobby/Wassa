@@ -2,7 +2,10 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
-import { fees } from "@/lib/site";
+import { getFees, type FeeDisplay } from "@/lib/fees";
+
+// Re-read the fees from Settings at most every five minutes.
+export const revalidate = 300;
 
 const categories = [
   {
@@ -54,7 +57,7 @@ const qualifyingFields = [
   "Public Administration",
 ];
 
-const admissionSteps = [
+const admissionSteps = (fees: FeeDisplay) => [
   {
     title: "Submit Application",
     body: "Send a written application to the General Secretary, including evidence of professional qualification and of Wassa indigeneity (or spousal connection).",
@@ -65,7 +68,7 @@ const admissionSteps = [
   },
   {
     title: "Admission & Dues",
-    body: "Successful applicants pay a one-time registration fee of GH₵100 to activate membership, then quarterly dues of GH₵300 (every 3 months) to remain in good standing.",
+    body: `Successful applicants pay a one-time registration fee of ${fees.registration} to activate membership, then quarterly dues of ${fees.dues} (every 3 months) to remain in good standing.`,
   },
 ];
 
@@ -76,7 +79,8 @@ const duties = [
   "Act with integrity and declare any conflict of interest promptly.",
 ];
 
-export default function Membership() {
+export default async function Membership() {
+  const fees = await getFees();
   return (
     <main className="bg-cream">
       <Navbar />
@@ -240,7 +244,7 @@ export default function Membership() {
         </Reveal>
 
         <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {admissionSteps.map((s, i) => (
+          {admissionSteps(fees).map((s, i) => (
             <Reveal key={s.title} delay={i * 100}>
               <div className="h-full rounded-3xl border border-green-900/10 bg-white p-8">
                 <div className="font-display text-4xl font-semibold text-gold-500/60">
@@ -287,7 +291,6 @@ export default function Membership() {
                   Registration fee
                 </h3>
                 <div className="mt-4 font-display text-4xl font-semibold text-green-950">
-                  {fees.currency}
                   {fees.registration}
                 </div>
                 <p className="mt-3 text-[15px] leading-relaxed text-green-900/70">
@@ -307,14 +310,12 @@ export default function Membership() {
                 </h3>
                 <div className="mt-4 flex items-baseline gap-2">
                   <span className="font-display text-4xl font-semibold text-green-950">
-                    {fees.currency}
                     {fees.dues}
                   </span>
                   <span className="text-sm text-green-900/60">every 3 months</span>
                 </div>
                 <p className="mt-3 text-[15px] leading-relaxed text-green-900/70">
-                  {fees.currency}
-                  {fees.dues} per quarter (4&times; a year &mdash; {fees.currency}
+                  {fees.dues} per quarter (4&times; a year &mdash;{" "}
                   {fees.duesPerYear} annually), keeping your voting and
                   office-holding rights active.
                 </p>

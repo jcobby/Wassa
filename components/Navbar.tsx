@@ -19,8 +19,8 @@ type Me = {
 // pages themselves still redirect; this just keeps the menu honest.)
 const GATED_HREFS = new Set(["/dashboard/dues"]);
 // Links only non-members should see — hidden once you're signed in (you can't
-// apply again if you're already a member).
-const GUEST_ONLY_HREFS = new Set(["/membership/apply"]);
+// apply again, or have an application to finish, if you're already a member).
+const GUEST_ONLY_HREFS = new Set(["/membership/apply", "/membership/continue"]);
 
 function firstName(full: string): string {
   return full.trim().split(/\s+/)[0] || full;

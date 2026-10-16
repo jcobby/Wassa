@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { adminFetch } from "@/lib/adminAuth";
+import { RemindAwaitingPayment } from "./RemindAwaitingPayment";
 
 type MemberRow = {
   id: string;
@@ -7,11 +8,20 @@ type MemberRow = {
   fullName: string;
   email: string;
   role: "member" | "admin";
-  status: "active" | "suspended" | "terminated";
+  status: "active" | "suspended" | "terminated" | "pending_payment";
   joinedAt: string;
   occupation?: string;
   countryOfResidence?: string;
 };
+
+async function loadAwaitingCount(): Promise<number> {
+  try {
+    const s = await adminFetch<{ pendingPayment?: number }>("/members/stats");
+    return s.pendingPayment ?? 0;
+  } catch {
+    return 0;
+  }
+}
 
 async function loadMembers(search: string, status: string): Promise<MemberRow[]> {
   try {
@@ -27,6 +37,7 @@ async function loadMembers(search: string, status: string): Promise<MemberRow[]>
 const STATUS_TABS = [
   { key: "", label: "All" },
   { key: "active", label: "Active" },
+  { key: "pending_payment", label: "Awaiting payment" },
   { key: "suspended", label: "Suspended" },
   { key: "terminated", label: "Terminated" },
 ] as const;
@@ -39,7 +50,11 @@ export default async function MembersPage({
   const params = await searchParams;
   const search = params.search ?? "";
   const status = params.status ?? "";
-  const rows = await loadMembers(search, status);
+  const awaiting = status === "pending_payment";
+  const [rows, awaitingCount] = await Promise.all([
+    loadMembers(search, status),
+    awaiting ? loadAwaitingCount() : Promise.resolve(0),
+  ]);
 
   return (
     <div className="max-w-6xl">
@@ -64,7 +79,7 @@ export default async function MembersPage({
         </button>
       </form>
 
-      <div className="mt-4 inline-flex rounded-lg border border-slate-200 bg-white p-1">
+      <div className="mt-4 inline-flex flex-wrap rounded-lg border border-slate-200 bg-white p-1">
         {STATUS_TABS.map((t) => {
           const q = new URLSearchParams();
           if (search) q.set("search", search);
@@ -86,6 +101,8 @@ export default async function MembersPage({
         })}
       </div>
 
+      {awaiting && <RemindAwaitingPayment count={awaitingCount} />}
+
       <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">
         {rows.length === 0 ? (
           <div className="px-6 py-16 text-center text-sm text-slate-500">
@@ -100,7 +117,11 @@ export default async function MembersPage({
                 <th className="px-6 py-3 font-semibold">Email</th>
                 <th className="px-6 py-3 font-semibold">Role</th>
                 <th className="px-6 py-3 font-semibold">Status</th>
-                <th className="px-6 py-3 font-semibold">Joined</th>
+                {/* The record is created at approval, so for someone who
+                    hasn't paid this date is when they were approved. */}
+                <th className="px-6 py-3 font-semibold">
+                  {awaiting ? "Approved" : "Joined"}
+                </th>
                 <th className="px-6 py-3" />
               </tr>
             </thead>
@@ -146,14 +167,15 @@ function StatusPill({ status }: { status: string }) {
     active: "bg-emerald-100 text-emerald-800",
     suspended: "bg-amber-100 text-amber-800",
     terminated: "bg-slate-200 text-slate-700",
+    pending_payment: "bg-blue-100 text-blue-800",
   };
   return (
     <span
-      className={`rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider ${
+      className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider ${
         colors[status] ?? "bg-slate-100 text-slate-700"
       }`}
     >
-      {status}
+      {status === "pending_payment" ? "awaiting payment" : status}
     </span>
   );
 }
