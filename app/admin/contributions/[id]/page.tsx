@@ -3,12 +3,10 @@ import { notFound } from "next/navigation";
 import { adminFetch } from "@/lib/adminAuth";
 import {
   contributionReceipt,
-  receiptText,
-  whatsappNumber,
   type ContributionDetail,
 } from "@/lib/transactions";
 import { ReceiptCard } from "../../_components/ReceiptCard";
-import { ShareActions } from "../../_components/ShareActions";
+import { SaveAsPdf } from "../../_components/SaveAsPdf";
 
 export default async function ContributionReceiptPage({
   params,
@@ -24,10 +22,6 @@ export default async function ContributionReceiptPage({
   }
 
   const receipt = contributionReceipt(c);
-  // A member's profile number is the better bet; non-members gave one at checkout.
-  const phone = c.member
-    ? whatsappNumber(c.member.mobileNumbers, c.member.countryOfResidence)
-    : whatsappNumber(c.donorPhone);
 
   return (
     <div className="max-w-3xl">
@@ -37,15 +31,23 @@ export default async function ContributionReceiptPage({
       >
         &larr; All contributions
       </Link>
-      <h1 className="mt-4 font-display text-3xl font-semibold print:hidden">
-        Contribution details
-      </h1>
-      <p className="mt-2 text-sm text-slate-600 print:hidden">
-        Everything about this gift in plain language &mdash; share it with the
-        donor or print it as a receipt.
-      </p>
+      <div className="mt-4 flex flex-wrap items-start justify-between gap-4 print:hidden">
+        <div>
+          <h1 className="font-display text-3xl font-semibold">
+            Contribution details
+          </h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Everything about this gift in plain language. Save it as a PDF to
+            send to the donor.
+          </p>
+        </div>
+        <SaveAsPdf
+          fileName={`WPN receipt - ${c.donorName} - ${c.reference}`}
+          className="sm:text-right"
+        />
+      </div>
 
-      <div className="mt-6">
+      <div className="mt-6 print:mt-0">
         <ReceiptCard receipt={receipt} />
       </div>
 
@@ -59,15 +61,6 @@ export default async function ContributionReceiptPage({
           </p>
         </div>
       )}
-
-      <div className="mt-6">
-        <ShareActions
-          text={receiptText(receipt)}
-          phone={phone}
-          recipientName={c.donorName}
-          title="Share with the donor"
-        />
-      </div>
 
       {c.member && (
         <Link

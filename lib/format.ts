@@ -1,6 +1,6 @@
 // WPN runs on Ghana time. Pinning the zone keeps a date identical whether it's
-// rendered on the server or in an admin's browser abroad — and in any message
-// shared from the console.
+// rendered on the server or in an admin's browser abroad — and on any receipt
+// saved from the console.
 const TIME_ZONE = "Africa/Accra";
 
 export function money(currency: string, amount: number): string {

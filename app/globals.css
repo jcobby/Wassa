@@ -86,6 +86,12 @@ h1, h2, h3, h4, h5 {
 
 html { scroll-behavior: smooth; }
 
+/* Receipts, statements and reports saved as PDF from the admin console. */
+@media print {
+  @page { margin: 14mm; }
+  body { background: #fff; }
+}
+
 ::selection {
   background: var(--gold-400);
   color: var(--green-900);

@@ -1,10 +1,20 @@
 import Link from "next/link";
 import { adminFetch } from "@/lib/adminAuth";
 import { formatDateTime } from "@/lib/format";
-import type { ContributionView } from "@/lib/transactions";
+import {
+  rangeLabel,
+  REPORT_ROW_LIMIT,
+  summarizeContributions,
+  type ContributionView,
+} from "@/lib/transactions";
 import { TxnStatusPill } from "../_components/ReceiptCard";
-
-type ContributionRow = ContributionView;
+import {
+  LedgerFilters,
+  ledgerHref,
+  type LedgerQuery,
+} from "../_components/LedgerFilters";
+import { ReportPanel } from "../_components/ReportPanel";
+import { PrintHeader } from "../_components/PrintHeader";
 
 type Stats = {
   totalRaised: number;
@@ -14,28 +24,18 @@ type Stats = {
   pending: number;
 };
 
+// "all" is explicit: with no status at all the page falls back to Received.
 const TABS = [
   { key: "success", label: "Received" },
   { key: "initialized", label: "In Progress" },
   { key: "failed", label: "Failed" },
-  { key: "", label: "All" },
+  { key: "all", label: "All" },
 ] as const;
 
-function query(status: string, search: string): string {
-  const q = new URLSearchParams();
-  if (status) q.set("status", status);
-  if (search) q.set("search", search);
-  const qs = q.toString();
-  return qs ? `?${qs}` : "";
-}
-
-async function loadRows(
-  status: string,
-  search: string
-): Promise<ContributionRow[]> {
+async function loadRows(query: LedgerQuery): Promise<ContributionView[]> {
   try {
-    return await adminFetch<ContributionRow[]>(
-      `/contributions${query(status, search)}`
+    return await adminFetch<ContributionView[]>(
+      ledgerHref("/contributions", query)
     );
   } catch {
     return [];
@@ -59,15 +59,28 @@ async function loadStats(): Promise<Stats> {
 export default async function ContributionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; search?: string }>;
+  searchParams: Promise<{
+    status?: string;
+    search?: string;
+    from?: string;
+    to?: string;
+  }>;
 }) {
   const params = await searchParams;
-  const active = params.status ?? "success";
-  const search = params.search?.trim() ?? "";
+  const query: LedgerQuery = {
+    status: params.status || "success",
+    search: params.search?.trim() ?? "",
+    from: params.from ?? "",
+    to: params.to ?? "",
+  };
+  const badRange = Boolean(query.from && query.to && query.from > query.to);
+  const dated = Boolean(query.from || query.to) && !badRange;
   const [rows, stats] = await Promise.all([
-    loadRows(active, search),
+    badRange ? Promise.resolve([]) : loadRows(query),
     loadStats(),
   ]);
+  const tabLabel = TABS.find((t) => t.key === query.status)?.label ?? "All";
+  const period = rangeLabel(query.from || undefined, query.to || undefined);
 
   // Every gift is charged in the currency configured at the time, so read the
   // label off the data rather than hard-coding GHS.
@@ -75,8 +88,11 @@ export default async function ContributionsPage({
 
   return (
     <div className="max-w-6xl">
-      <h1 className="font-display text-3xl font-semibold">Contributions</h1>
-      <p className="mt-2 text-sm text-slate-600">
+      <PrintHeader title="Contributions report" />
+      <h1 className="font-display text-3xl font-semibold print:hidden">
+        Contributions
+      </h1>
+      <p className="mt-2 text-sm text-slate-600 print:hidden">
         Voluntary gifts made through the public{" "}
         <Link href="/contribute" className="underline">
           Contribute
@@ -84,7 +100,7 @@ export default async function ContributionsPage({
         page — open to members and non-members alike.
       </p>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 print:hidden">
         <Stat
           label="Total raised"
           value={`${currency} ${stats.totalRaised.toFixed(2)}`}
@@ -97,50 +113,39 @@ export default async function ContributionsPage({
         <Stat label="Distinct donors" value={String(stats.donors)} />
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <div className="inline-flex rounded-lg border border-slate-200 bg-white p-1">
-          {TABS.map((t) => (
-            <Link
-              key={t.label}
-              href={`/admin/contributions${query(t.key, search)}`}
-              className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-                active === t.key
-                  ? "bg-green-900 text-cream"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              {t.label}
-            </Link>
-          ))}
+      <LedgerFilters
+        basePath="/admin/contributions"
+        tabs={TABS}
+        query={query}
+        searchPlaceholder="Donor name, email or reference"
+      />
+
+      {badRange && (
+        <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          The &ldquo;From&rdquo; date must be on or before the &ldquo;To&rdquo;
+          date.
         </div>
+      )}
 
-        <form
-          action="/admin/contributions"
-          className="flex flex-1 gap-2 sm:max-w-sm"
-        >
-          <input type="hidden" name="status" value={active} />
-          <input
-            type="search"
-            name="search"
-            defaultValue={search}
-            placeholder="Donor name, email or reference"
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700/20"
-          />
-          <button
-            type="submit"
-            className="rounded-lg bg-green-900 px-4 py-2 text-sm font-semibold text-cream hover:bg-green-800"
-          >
-            Search
-          </button>
-        </form>
-      </div>
+      {dated && (
+        <ReportPanel
+          title={`${tabLabel} contributions`}
+          period={period}
+          filterNote={query.search ? `Matching “${query.search}”` : undefined}
+          summary={summarizeContributions(rows)}
+          truncated={rows.length >= REPORT_ROW_LIMIT}
+          fileName={`WPN contributions report - ${period}`}
+        />
+      )}
 
-      <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+      <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-200 bg-white print:overflow-visible">
         {rows.length === 0 ? (
           <div className="px-6 py-16 text-center text-sm text-slate-500">
-            {search
-              ? `No contributions match “${search}”.`
-              : "No contributions to show."}
+            {query.search
+              ? `No contributions match “${query.search}”.`
+              : dated
+                ? "No contributions in this period."
+                : "No contributions to show."}
           </div>
         ) : (
           <table className="w-full text-left text-sm">
@@ -152,22 +157,32 @@ export default async function ContributionsPage({
                 <th className="px-6 py-3 font-semibold">Reference</th>
                 <th className="px-6 py-3 font-semibold">Status</th>
                 <th className="px-6 py-3 font-semibold">Date</th>
-                <th className="px-6 py-3" />
+                <th className="px-6 py-3 print:hidden" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {rows.map((r) => (
-                <tr key={r.id} className="align-top hover:bg-slate-50">
+                <tr key={r.id} className="break-inside-avoid align-top hover:bg-slate-50">
+                  {/* A saved report can travel well beyond the Secretariat:
+                      on paper, anonymous donors stay unnamed and nobody's
+                      contact details or message are included. */}
                   <td className="px-6 py-4 font-medium text-slate-900">
                     <div className="flex items-center gap-2">
-                      {r.donorName}
+                      <span className={r.anonymous ? "print:hidden" : ""}>
+                        {r.donorName}
+                      </span>
                       {r.anonymous && (
-                        <span
-                          title="Donor asked not to be named publicly"
-                          className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600"
-                        >
-                          Anonymous
-                        </span>
+                        <>
+                          <span className="hidden print:inline">
+                            Anonymous donor
+                          </span>
+                          <span
+                            title="Donor asked not to be named publicly"
+                            className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600 print:hidden"
+                          >
+                            Anonymous
+                          </span>
+                        </>
                       )}
                       {r.memberId && (
                         <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-green-800">
@@ -175,17 +190,19 @@ export default async function ContributionsPage({
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-slate-500">{r.donorEmail}</div>
-                    {r.donorPhone && (
-                      <div className="text-xs text-slate-500">
-                        {r.donorPhone}
-                      </div>
-                    )}
-                    {r.message && (
-                      <div className="mt-1 max-w-xs text-xs italic text-slate-500">
-                        &ldquo;{r.message}&rdquo;
-                      </div>
-                    )}
+                    <div className="print:hidden">
+                      <div className="text-xs text-slate-500">{r.donorEmail}</div>
+                      {r.donorPhone && (
+                        <div className="text-xs text-slate-500">
+                          {r.donorPhone}
+                        </div>
+                      )}
+                      {r.message && (
+                        <div className="mt-1 max-w-xs text-xs italic text-slate-500">
+                          &ldquo;{r.message}&rdquo;
+                        </div>
+                      )}
+                    </div>
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 font-semibold text-slate-900">
                     {r.currency} {r.amount.toFixed(2)}
@@ -200,7 +217,7 @@ export default async function ContributionsPage({
                   <td className="whitespace-nowrap px-6 py-4 text-slate-600">
                     {formatDateTime(r.completedAt ?? r.createdAt)}
                   </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-right">
+                  <td className="whitespace-nowrap px-6 py-4 text-right print:hidden">
                     <Link
                       href={`/admin/contributions/${r.id}`}
                       className="font-semibold text-green-800 hover:text-green-700"

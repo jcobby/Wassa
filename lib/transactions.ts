@@ -1,8 +1,7 @@
 import { formatDate, formatDateTime, money } from "./format";
 
-// Turns raw ledger records into receipts and statements an admin can explain
-// to a member — on screen, on paper, or as a WhatsApp message. The page and the
-// message are built from the same Receipt, so they can never disagree.
+// Turns raw ledger records into receipts, statements and dated reports an
+// admin can explain to a member — on screen or saved as a PDF.
 
 export type TxnStatus = "initialized" | "success" | "failed" | "abandoned";
 
@@ -11,8 +10,6 @@ export type MemberContact = {
   fullName: string;
   email: string;
   applicantId: string | null;
-  mobileNumbers: string;
-  countryOfResidence: string;
 };
 
 export type PaymentView = {
@@ -28,6 +25,16 @@ export type PaymentView = {
   channel: string | null;
   createdAt: string | null;
   completedAt: string | null;
+};
+
+// A row of the admin Payments list.
+export type PaymentListRow = PaymentView & {
+  member: {
+    id: string;
+    fullName: string;
+    email: string;
+    applicantId: string | null;
+  } | null;
 };
 
 export type PaymentDetail = PaymentView & {
@@ -104,13 +111,6 @@ export const STATUS_LABEL: Record<TxnStatus, string> = {
   abandoned: "Abandoned",
 };
 
-const STATUS_MARK: Record<TxnStatus, string> = {
-  success: "✅",
-  initialized: "⏳",
-  failed: "❌",
-  abandoned: "⚪",
-};
-
 const CHANNELS: Record<string, string> = {
   mobile_money: "Mobile money",
   card: "Card",
@@ -156,6 +156,8 @@ export function paymentDescription(p: Purposed): string {
     ? `Quarterly dues · ${quarterShort(p.year, p.quarter)}`
     : `Dues · ${p.year}`;
 }
+
+// ---- Single-transaction receipts -------------------------------------------
 
 export type ReceiptRow = { label: string; value: string; mono?: boolean };
 
@@ -278,24 +280,7 @@ export function contributionReceipt(c: ContributionDetail): Receipt {
   };
 }
 
-// WhatsApp formatting: *bold*, _italic_. Plain enough to read in any chat.
-export function receiptText(r: Receipt): string {
-  const lines = [
-    "*Wassa Professionals Network*",
-    r.kind,
-    "",
-    `*${r.title}*`,
-    `Amount: *${r.amount}*`,
-    `Status: ${STATUS_LABEL[r.status]} ${STATUS_MARK[r.status]}`,
-    "",
-    r.summary,
-    "",
-    ...r.rows.map((row) => `${row.label}: ${row.value}`),
-  ];
-  if (r.note) lines.push("", r.note);
-  lines.push("", "_Help a Wassa to Help Wassa._");
-  return lines.join("\n");
-}
+// ---- Member statements -----------------------------------------------------
 
 export type StatementLine = {
   key: string;
@@ -353,7 +338,9 @@ export function statementLines(t: MemberTransactions): StatementLine[] {
 }
 
 // Totals per currency — in practice always one, but never add GHS to USD.
-export function totalsByCurrency(lines: StatementLine[]): string[] {
+export function totalsByCurrency(
+  lines: { currency: string; amount: number }[]
+): string[] {
   const sums = new Map<string, number>();
   for (const l of lines) {
     sums.set(l.currency, (sums.get(l.currency) ?? 0) + Math.round(l.amount * 100));
@@ -361,7 +348,8 @@ export function totalsByCurrency(lines: StatementLine[]): string[] {
   return [...sums].map(([currency, pesewas]) => money(currency, pesewas / 100));
 }
 
-function duesLine(d: DuesStatus): string {
+// "Dues 2026: Q1 paid · Q2 waived · Q3 due · Q4 upcoming"
+export function duesSummary(d: DuesStatus): string {
   const parts = d.quarters.map((q) => {
     const state = q.paid
       ? "paid"
@@ -377,66 +365,90 @@ function duesLine(d: DuesStatus): string {
   return `Dues ${d.year}: ${parts.join(" · ")}`;
 }
 
-// A member's statement as one WhatsApp message: everything they've paid, the
-// total, and where their dues stand this year.
-export function statementText(
-  member: MemberContact,
-  paid: StatementLine[],
-  dues: DuesStatus | null
-): string {
-  const lines = [
-    "*Wassa Professionals Network*",
-    "Payment statement",
-    "",
-    `Member: ${member.fullName}`,
-  ];
-  if (member.applicantId) lines.push(`WPN ID: ${member.applicantId}`);
-  lines.push(`Statement date: ${formatDate(new Date().toISOString())}`, "");
+// ---- Dated reports ---------------------------------------------------------
 
-  if (paid.length === 0) {
-    lines.push("No payments on record yet.");
-  } else {
-    paid.forEach((l, i) => {
-      lines.push(
-        `${i + 1}. ${formatDate(l.date)} — ${l.description} — ${money(l.currency, l.amount)}`
-      );
+// Mirrors RANGE_LIMIT in wpn-api/src/utils/dateRange.ts: a dated list stops
+// there, so a report that reaches it may be missing rows.
+export const REPORT_ROW_LIMIT = 2000;
+
+export function rangeLabel(from?: string, to?: string): string {
+  if (from && to) {
+    return from === to ? formatDate(from) : `${formatDate(from)} – ${formatDate(to)}`;
+  }
+  if (from) return `From ${formatDate(from)}`;
+  if (to) return `Up to ${formatDate(to)}`;
+  return "All dates";
+}
+
+function plural(n: number, word: string): string {
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
+}
+
+export type ReportGroup = { label: string; countText: string; total: string };
+
+export type ReportSummary = {
+  stats: { label: string; value: string }[];
+  groups: ReportGroup[];
+  // Rows in view that brought in no money — left out of every total.
+  unfinished: number;
+};
+
+function totalText(rows: { currency: string; amount: number }[]): string {
+  return totalsByCurrency(rows).join(" + ") || money("GHS", 0);
+}
+
+export function summarizePayments(rows: PaymentListRow[]): ReportSummary {
+  const paid = rows.filter((r) => r.status === "success");
+  const fees = paid.filter((r) => r.purpose === "membership_initial");
+  const dues = paid.filter((r) => r.purpose === "dues_renewal");
+  const payers = new Set(paid.map((r) => r.member?.id ?? r.id)).size;
+  const groups: ReportGroup[] = [];
+  if (fees.length) {
+    groups.push({
+      label: "Registration fees",
+      countText: plural(fees.length, "member"),
+      total: totalText(fees),
     });
-    lines.push("", `*Total paid: ${totalsByCurrency(paid).join(" + ")}*`);
   }
-  if (dues) lines.push("", duesLine(dues));
-  lines.push("", "_Help a Wassa to Help Wassa._");
-  return lines.join("\n");
+  if (dues.length) {
+    groups.push({
+      label: "Quarterly dues",
+      countText: plural(dues.length, "quarter"),
+      total: totalText(dues),
+    });
+  }
+  return {
+    stats: [
+      { label: "Total received", value: totalText(paid) },
+      { label: "Members who paid", value: String(payers) },
+      { label: "Payments", value: String(paid.length) },
+    ],
+    groups,
+    unfinished: rows.length - paid.length,
+  };
 }
 
-// A wa.me-ready number (country code + digits, no "+"), or null when the
-// profile's free-text phone field can't be read with confidence — the console
-// then lets the admin pick the chat in WhatsApp instead.
-export function whatsappNumber(
-  raw: string | null | undefined,
-  country?: string | null
-): string | null {
-  if (!raw) return null;
-  // Members often list several numbers ("024 123 4567 / 020 765 4321").
-  const first = raw.split(/[/,;]|\bor\b/i)[0]?.trim() ?? "";
-  let digits = first.replace(/\D/g, "");
-  if (first.startsWith("+")) {
-    // already international
-  } else if (digits.startsWith("00")) {
-    digits = digits.slice(2);
-  } else if (digits.length === 10 && digits.startsWith("0")) {
-    // A local number is only safe to read as Ghanaian for members living there.
-    if (!/ghana/i.test(country ?? "")) return null;
-    digits = `233${digits.slice(1)}`;
-  } else if (!(digits.startsWith("233") && digits.length === 12)) {
-    return null;
+export function summarizeContributions(rows: ContributionView[]): ReportSummary {
+  const paid = rows.filter((r) => r.status === "success");
+  const byCause = new Map<string, ContributionView[]>();
+  for (const r of paid) {
+    const cause = r.cause || "Not designated";
+    byCause.set(cause, [...(byCause.get(cause) ?? []), r]);
   }
-  // "+233 (0)24 …" keeps a trunk zero after the country code.
-  if (digits.startsWith("2330") && digits.length === 13) {
-    digits = `233${digits.slice(4)}`;
-  }
-  return digits.length >= 8 && digits.length <= 15 ? digits : null;
-}
-
-export function whatsappUrl(text: string, phone?: string | null): string {
-  return `https://wa.me/${phone ?? ""}?text=${encodeURIComponent(text)}`;
+  return {
+    stats: [
+      { label: "Total received", value: totalText(paid) },
+      { label: "Gifts", value: String(paid.length) },
+      {
+        label: "Donors",
+        value: String(new Set(paid.map((r) => r.donorEmail)).size),
+      },
+    ],
+    groups: [...byCause].map(([label, gifts]) => ({
+      label,
+      countText: plural(gifts.length, "gift"),
+      total: totalText(gifts),
+    })),
+    unfinished: rows.length - paid.length,
+  };
 }

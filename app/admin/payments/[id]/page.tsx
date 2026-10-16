@@ -1,14 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { adminFetch } from "@/lib/adminAuth";
-import {
-  paymentReceipt,
-  receiptText,
-  whatsappNumber,
-  type PaymentDetail,
-} from "@/lib/transactions";
+import { paymentReceipt, type PaymentDetail } from "@/lib/transactions";
 import { ReceiptCard } from "../../_components/ReceiptCard";
-import { ShareActions } from "../../_components/ShareActions";
+import { SaveAsPdf } from "../../_components/SaveAsPdf";
 
 export default async function PaymentReceiptPage({
   params,
@@ -33,28 +28,26 @@ export default async function PaymentReceiptPage({
       >
         &larr; All payments
       </Link>
-      <h1 className="mt-4 font-display text-3xl font-semibold print:hidden">
-        Transaction details
-      </h1>
-      <p className="mt-2 text-sm text-slate-600 print:hidden">
-        Everything about this payment in plain language &mdash; share it with
-        the member or print it as a receipt.
-      </p>
-
-      <div className="mt-6">
-        <ReceiptCard receipt={receipt} />
+      <div className="mt-4 flex flex-wrap items-start justify-between gap-4 print:hidden">
+        <div>
+          <h1 className="font-display text-3xl font-semibold">
+            Transaction details
+          </h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Everything about this payment in plain language. Save it as a PDF
+            to send to the member.
+          </p>
+        </div>
+        <SaveAsPdf
+          fileName={`WPN receipt - ${p.member?.fullName ?? "payment"} - ${
+            p.batchReference ?? p.reference
+          }`}
+          className="sm:text-right"
+        />
       </div>
 
-      <div className="mt-6">
-        <ShareActions
-          text={receiptText(receipt)}
-          phone={
-            p.member
-              ? whatsappNumber(p.member.mobileNumbers, p.member.countryOfResidence)
-              : null
-          }
-          recipientName={p.member?.fullName}
-        />
+      <div className="mt-6 print:mt-0">
+        <ReceiptCard receipt={receipt} />
       </div>
 
       {p.member && (

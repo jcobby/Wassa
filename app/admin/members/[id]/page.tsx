@@ -5,6 +5,7 @@ import { MemberActions } from "./MemberActions";
 import { ResendEmail } from "./ResendEmail";
 import { DuesManager } from "./DuesManager";
 import { Statement } from "./Statement";
+import { PrintHeader } from "../../_components/PrintHeader";
 
 type MemberDetail = {
   _id: string;
@@ -57,14 +58,17 @@ export default async function MemberDetailPage({
 
   return (
     <div className="max-w-4xl">
+      {/* Saving the statement as a PDF prints just the member's name and the
+          statement — the profile and admin tools below stay off paper. */}
+      <PrintHeader title="Payment statement" />
       <Link
         href="/admin/members"
-        className="text-sm font-medium text-slate-500 hover:text-slate-900"
+        className="text-sm font-medium text-slate-500 hover:text-slate-900 print:hidden"
       >
         &larr; All members
       </Link>
 
-      <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
+      <div className="mt-4 flex flex-wrap items-start justify-between gap-4 print:mt-0 print:mb-6">
         <div>
           {m.applicantId && (
             <div className="font-mono text-xs font-semibold uppercase tracking-wider text-green-700">
@@ -75,7 +79,7 @@ export default async function MemberDetailPage({
             {m.fullName}
           </h1>
           <p className="mt-1 text-sm text-slate-600">{m.email}</p>
-          <p className="mt-1 text-xs uppercase tracking-wider text-slate-500">
+          <p className="mt-1 text-xs uppercase tracking-wider text-slate-500 print:hidden">
             Joined {new Date(m.joinedAt).toLocaleDateString()}
             {m.lastLoginAt
               ? ` · Last login ${new Date(m.lastLoginAt).toLocaleDateString()}`
@@ -85,7 +89,7 @@ export default async function MemberDetailPage({
         <StatusBadge status={m.status} />
       </div>
 
-      <div className="mt-8 grid gap-6 md:grid-cols-2">
+      <div className="mt-8 grid gap-6 md:grid-cols-2 print:hidden">
         <Card title="Personal">
           <Row k="Title" v={m.title === "Other" ? m.titleOther : m.title} />
           <Row k="Gender" v={m.gender} />
@@ -122,20 +126,22 @@ export default async function MemberDetailPage({
         </Card>
       </div>
 
-      {m.role !== "admin" && m.status === "pending_payment" && (
-        <ResendEmail id={id} mode="payment" />
-      )}
-      {m.role !== "admin" && m.status === "active" && !m.hasPassword && (
-        <ResendEmail id={id} mode="set_password" />
-      )}
-      {m.role !== "admin" &&
-        (m.status === "active" ||
-          m.status === "suspended" ||
-          m.status === "terminated") && (
-          <MemberActions id={id} status={m.status} />
+      <div className="print:hidden">
+        {m.role !== "admin" && m.status === "pending_payment" && (
+          <ResendEmail id={id} mode="payment" />
         )}
+        {m.role !== "admin" && m.status === "active" && !m.hasPassword && (
+          <ResendEmail id={id} mode="set_password" />
+        )}
+        {m.role !== "admin" &&
+          (m.status === "active" ||
+            m.status === "suspended" ||
+            m.status === "terminated") && (
+            <MemberActions id={id} status={m.status} />
+          )}
 
-      {m.role !== "admin" && <DuesManager id={id} />}
+        {m.role !== "admin" && <DuesManager id={id} />}
+      </div>
 
       <Statement id={id} showAll={txns === "all"} />
     </div>
