@@ -252,9 +252,17 @@ export function paymentReceipt(p: PaymentDetail): Receipt {
   };
 }
 
+// What a gift is for, in words. "Other" gifts carry the donor's own
+// description in `message`, so show that rather than a bare "Other".
+export function giftDesignation(c: Pick<ContributionView, "cause" | "message">): string {
+  if (c.cause.trim().toLowerCase() !== "other" || !c.message.trim()) return c.cause;
+  return `Other — ${c.message.trim().replace(/\s+/g, " ")}`;
+}
+
 export function contributionReceipt(c: ContributionDetail): Receipt {
   const when = formatDate(c.completedAt ?? c.createdAt);
-  const toward = c.cause ? `, designated for “${c.cause}”` : "";
+  const designation = giftDesignation(c);
+  const toward = designation ? `, designated for “${designation}”` : "";
   const summary = {
     success: `Voluntary contribution received and confirmed on ${when}${toward}.`,
     initialized: `A contribution checkout was opened on ${when} but has not been completed. No money has been received for this transaction.`,
@@ -271,7 +279,7 @@ export function contributionReceipt(c: ContributionDetail): Receipt {
   if (c.member?.applicantId) {
     rows.push({ label: "WPN ID", value: c.member.applicantId, mono: true });
   }
-  if (c.cause) rows.push({ label: "Designated for", value: c.cause });
+  if (designation) rows.push({ label: "Designated for", value: designation });
   rows.push(
     c.status === "success"
       ? { label: "Date received", value: formatDateTime(c.completedAt) }
@@ -324,7 +332,7 @@ export function statementLines(t: MemberTransactions): StatementLine[] {
     ...t.contributions.map((c) => ({
       key: `c-${c.id}`,
       date: c.completedAt ?? c.createdAt,
-      description: c.cause ? `Contribution · ${c.cause}` : "Contribution",
+      description: c.cause ? `Contribution · ${giftDesignation(c)}` : "Contribution",
       amount: c.amount,
       currency: c.currency,
       status: c.status,

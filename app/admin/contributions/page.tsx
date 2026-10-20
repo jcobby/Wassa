@@ -2,6 +2,7 @@ import Link from "next/link";
 import { adminFetch } from "@/lib/adminAuth";
 import { formatDateTime } from "@/lib/format";
 import {
+  giftDesignation,
   rangeLabel,
   REPORT_ROW_LIMIT,
   summarizeContributions,
@@ -197,7 +198,9 @@ export default async function ContributionsPage({
                           {r.donorPhone}
                         </div>
                       )}
-                      {r.message && (
+                      {/* An "Other" gift's message is its purpose, shown under
+                          "Directed to" instead. */}
+                      {r.message && giftDesignation(r) === r.cause && (
                         <div className="mt-1 max-w-xs text-xs italic text-slate-500">
                           &ldquo;{r.message}&rdquo;
                         </div>
@@ -207,7 +210,9 @@ export default async function ContributionsPage({
                   <td className="whitespace-nowrap px-6 py-4 font-semibold text-slate-900">
                     {r.currency} {r.amount.toFixed(2)}
                   </td>
-                  <td className="px-6 py-4 text-slate-600">{r.cause || "—"}</td>
+                  <td className="max-w-xs px-6 py-4 text-slate-600">
+                    {giftDesignation(r) || "—"}
+                  </td>
                   <td className="px-6 py-4 font-mono text-xs text-slate-600">
                     {r.reference}
                   </td>

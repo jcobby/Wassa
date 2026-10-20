@@ -35,8 +35,15 @@ function formatAmount(value: number): string {
   });
 }
 
+// Always offered last, whatever causes Settings lists. Choosing it asks the
+// donor to say what the gift is for.
+const OTHER = "Other";
+
 export function ContributeForm({ options }: { options: ContributeOptions }) {
   const symbol = symbolFor(options.currency);
+  const causes = options.causes.length
+    ? [...options.causes.filter((c) => c.trim().toLowerCase() !== "other"), OTHER]
+    : [];
 
   // `custom` is what the donor typed; `preset` is the chip they tapped. Only
   // one is ever active — tapping a chip clears the box and vice versa.
@@ -44,7 +51,8 @@ export function ContributeForm({ options }: { options: ContributeOptions }) {
     options.suggestedAmounts[1] ?? options.suggestedAmounts[0] ?? null
   );
   const [custom, setCustom] = useState("");
-  const [cause, setCause] = useState(options.causes[0] ?? "");
+  const [cause, setCause] = useState(causes[0] ?? "");
+  const isOther = cause === OTHER;
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -79,6 +87,10 @@ export function ContributeForm({ options }: { options: ContributeOptions }) {
       setError("Please enter an email address for your receipt.");
       return;
     }
+    if (isOther && form.message.trim().length < 3) {
+      setError("Please tell us what you'd like your gift to go towards.");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -90,7 +102,9 @@ export function ContributeForm({ options }: { options: ContributeOptions }) {
           donorPhone: form.phone.trim(),
           amount: Number(amount),
           cause,
-          message: form.message.trim(),
+          // Only sent with "Other" — text typed before switching to a listed
+          // cause is hidden, so it isn't sent either.
+          message: isOther ? form.message.trim() : "",
           anonymous,
         }
       );
@@ -187,7 +201,7 @@ export function ContributeForm({ options }: { options: ContributeOptions }) {
       </div>
 
       {/* CAUSE */}
-      {options.causes.length > 0 && (
+      {causes.length > 0 && (
         <div className="mt-6">
           <label className="mb-1.5 block text-sm font-medium text-green-900">
             Direct my gift to
@@ -197,12 +211,29 @@ export function ContributeForm({ options }: { options: ContributeOptions }) {
             onChange={(e) => setCause(e.target.value)}
             className={field}
           >
-            {options.causes.map((c) => (
+            {causes.map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>
             ))}
           </select>
+
+          {isOther && (
+            <div className="mt-4">
+              <label className="mb-1.5 block text-sm font-medium text-green-900">
+                What should your gift go towards? *
+              </label>
+              <textarea
+                rows={3}
+                maxLength={1000}
+                autoFocus
+                className={`${field} resize-none`}
+                placeholder="Tell us what you'd like your gift to support, or who it honours."
+                value={form.message}
+                onChange={(e) => setForm({ ...form, message: e.target.value })}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -242,19 +273,6 @@ export function ContributeForm({ options }: { options: ContributeOptions }) {
           placeholder="055 000 0000"
           value={form.phone}
           onChange={(e) => setForm({ ...form, phone: e.target.value })}
-        />
-      </div>
-
-      <div className="mt-4">
-        <label className="mb-1.5 block text-sm font-medium text-green-900">
-          Message (optional)
-        </label>
-        <textarea
-          rows={3}
-          className={`${field} resize-none`}
-          placeholder="A note to the Secretariat, or who your gift honours."
-          value={form.message}
-          onChange={(e) => setForm({ ...form, message: e.target.value })}
         />
       </div>
 

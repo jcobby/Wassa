@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { adminFetch } from "@/lib/adminAuth";
 import {
   contributionReceipt,
+  giftDesignation,
   type ContributionDetail,
 } from "@/lib/transactions";
 import { ReceiptCard } from "../../_components/ReceiptCard";
@@ -51,7 +52,8 @@ export default async function ContributionReceiptPage({
         <ReceiptCard receipt={receipt} />
       </div>
 
-      {c.message && (
+      {/* An "Other" gift's message is its purpose — already on the receipt. */}
+      {c.message && giftDesignation(c) === c.cause && (
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 print:hidden">
           <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
             Donor&apos;s message
