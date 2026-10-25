@@ -25,7 +25,7 @@ export function SignOutButton({ compact = false }: { compact?: boolean }) {
       {compact ? (
         <button
           onClick={() => setConfirming(true)}
-          className="text-xs font-semibold text-slate-600 hover:text-slate-900"
+          className="flex-none rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-900"
         >
           Sign out
         </button>

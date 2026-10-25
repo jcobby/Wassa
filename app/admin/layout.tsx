@@ -44,23 +44,22 @@ export default async function AdminLayout({
             </Link>
           ))}
         </nav>
-
-        <div className="border-t border-slate-200 px-4 py-4">
-          <div className="text-xs text-slate-500">Signed in as</div>
-          <div className="mt-0.5 truncate text-sm font-medium text-slate-900">
-            {me.fullName}
-          </div>
-          <div className="truncate text-xs text-slate-500">{me.email}</div>
-          <SignOutButton />
-        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 lg:hidden print:hidden">
-          <Link href="/admin" className="font-display text-sm font-semibold">
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-6 py-3 lg:justify-end lg:px-10 print:hidden">
+          <Link href="/admin" className="font-display text-sm font-semibold lg:hidden">
             WPN Admin
           </Link>
-          <SignOutButton compact />
+          <div className="flex min-w-0 items-center gap-4">
+            <div className="hidden min-w-0 text-right leading-tight sm:block">
+              <div className="truncate text-sm font-medium text-slate-900">
+                {me.fullName}
+              </div>
+              <div className="truncate text-xs text-slate-500">{me.email}</div>
+            </div>
+            <SignOutButton compact />
+          </div>
         </header>
         <main className="flex-1 p-6 lg:p-10 print:p-0">{children}</main>
       </div>
