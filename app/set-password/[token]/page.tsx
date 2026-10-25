@@ -109,19 +109,27 @@ export default function SetPasswordPage({
                     Link no longer valid
                   </h1>
                   <p className="mt-2 text-sm text-green-900/65">
-                    This link has already been used or has expired. If
-                    you&apos;ve already set your password, just sign in. If you
-                    still need to set it, ask the General Secretary to re-send
-                    your link.
+                    This link has already been used or has expired. If you
+                    still need to set your password, enter your email and
+                    we&apos;ll send you a new link. If you&apos;ve already set
+                    it, just sign in.
                   </p>
-                  <Link
-                    href="/login"
-                    className="mt-6 inline-flex rounded-xl bg-gold-500 px-6 py-3.5 font-semibold text-green-950 shadow-lg shadow-gold-500/20 transition-all hover:-translate-y-0.5 hover:bg-gold-400"
-                  >
-                    Go to Sign In
-                  </Link>
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    <Link
+                      href="/membership/continue"
+                      className="inline-flex rounded-xl bg-gold-500 px-6 py-3.5 font-semibold text-green-950 shadow-lg shadow-gold-500/20 transition-all hover:-translate-y-0.5 hover:bg-gold-400"
+                    >
+                      Email Me a New Link
+                    </Link>
+                    <Link
+                      href="/login"
+                      className="inline-flex rounded-xl border border-green-900/15 px-6 py-3.5 font-semibold text-green-900 transition-colors hover:border-gold-500 hover:text-gold-600"
+                    >
+                      Go to Sign In
+                    </Link>
+                  </div>
                   <p className="mt-4 text-xs text-green-900/55">
-                    Need a new link?{" "}
+                    Still stuck?{" "}
                     <Link
                       href="/contact"
                       className="font-semibold text-green-800 hover:text-gold-600"

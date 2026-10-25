@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { adminFetch } from "@/lib/adminAuth";
 import { RemindAwaitingPayment } from "./RemindAwaitingPayment";
+import { RemindDuesButton } from "./RemindDuesButton";
 
 type MemberRow = {
   id: string;
@@ -12,7 +13,22 @@ type MemberRow = {
   joinedAt: string;
   occupation?: string;
   countryOfResidence?: string;
+  duesReminderSentAt?: string | null;
 };
+
+// Overdue quarters this year per active member, by the same rule as the Dues
+// page. Members missing from the map (not active, or the lookup failed) show
+// no dues figure and no reminder button.
+async function loadOwed(): Promise<Map<string, number>> {
+  try {
+    const o = await adminFetch<{ rows: { memberId: string; owed: number }[] }>(
+      "/dues"
+    );
+    return new Map(o.rows.map((r) => [r.memberId, r.owed]));
+  } catch {
+    return new Map();
+  }
+}
 
 async function loadAwaitingCount(): Promise<number> {
   try {
@@ -51,9 +67,12 @@ export default async function MembersPage({
   const search = params.search ?? "";
   const status = params.status ?? "";
   const awaiting = status === "pending_payment";
-  const [rows, awaitingCount] = await Promise.all([
+  // Only active members owe dues, so other tabs skip the lookup.
+  const showDues = status === "" || status === "active";
+  const [rows, awaitingCount, owed] = await Promise.all([
     loadMembers(search, status),
     awaiting ? loadAwaitingCount() : Promise.resolve(0),
+    showDues ? loadOwed() : Promise.resolve(new Map<string, number>()),
   ]);
 
   return (
@@ -122,11 +141,18 @@ export default async function MembersPage({
                 <th className="px-6 py-3 font-semibold">
                   {awaiting ? "Approved" : "Joined"}
                 </th>
+                {showDues && (
+                  <th className="px-6 py-3 font-semibold">
+                    Dues {new Date().getFullYear()}
+                  </th>
+                )}
                 <th className="px-6 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {rows.map((r) => (
+              {rows.map((r) => {
+                const quartersOwed = owed.get(r.id);
+                return (
                 <tr key={r.id} className="hover:bg-slate-50">
                   <td className="px-6 py-4 font-mono text-xs font-semibold text-slate-700">
                     {r.applicantId ?? "—"}
@@ -144,16 +170,39 @@ export default async function MembersPage({
                   <td className="px-6 py-4 text-slate-600">
                     {new Date(r.joinedAt).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <Link
-                      href={`/admin/members/${r.id}`}
-                      className="font-semibold text-green-800 hover:text-green-700"
-                    >
-                      View &rarr;
-                    </Link>
+                  {showDues && (
+                    <td className="whitespace-nowrap px-6 py-4">
+                      {quartersOwed === undefined ? (
+                        <span className="text-slate-400">—</span>
+                      ) : quartersOwed > 0 ? (
+                        <span className="font-semibold text-amber-800">
+                          {quartersOwed} {quartersOwed === 1 ? "quarter" : "quarters"} owed
+                        </span>
+                      ) : (
+                        <span className="text-emerald-700">Up to date</span>
+                      )}
+                    </td>
+                  )}
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-end gap-4">
+                      {!!quartersOwed && (
+                        <RemindDuesButton
+                          id={r.id}
+                          name={r.fullName}
+                          lastSentAt={r.duesReminderSentAt}
+                        />
+                      )}
+                      <Link
+                        href={`/admin/members/${r.id}`}
+                        className="whitespace-nowrap font-semibold text-green-800 hover:text-green-700"
+                      >
+                        View &rarr;
+                      </Link>
+                    </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         )}

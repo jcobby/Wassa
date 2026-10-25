@@ -36,6 +36,7 @@ type MemberDetail = {
   role: "member" | "admin";
   status: "active" | "suspended" | "terminated" | "pending_payment";
   hasPassword?: boolean;
+  duesReminderSentAt?: string | null;
   joinedAt: string;
   lastLoginAt?: string;
 };
@@ -140,7 +141,14 @@ export default async function MemberDetailPage({
             <MemberActions id={id} status={m.status} />
           )}
 
-        {m.role !== "admin" && <DuesManager id={id} memberName={m.fullName} />}
+        {m.role !== "admin" && (
+          <DuesManager
+            id={id}
+            memberName={m.fullName}
+            canRemind={m.status === "active"}
+            lastRemindedAt={m.duesReminderSentAt ?? null}
+          />
+        )}
       </div>
 
       <Statement id={id} showAll={txns === "all"} />

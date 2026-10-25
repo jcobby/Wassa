@@ -6,6 +6,7 @@ import {
   RecordQuarterModal,
   type RecordResult,
 } from "../../dues/RecordQuarterModal";
+import { RemindDuesButton } from "../RemindDuesButton";
 
 type Quarter = {
   quarter: number;
@@ -26,7 +27,18 @@ type DuesStatus = {
 
 const LABELS = ["Jan – Mar", "Apr – Jun", "Jul – Sep", "Oct – Dec"];
 
-export function DuesManager({ id, memberName }: { id: string; memberName: string }) {
+export function DuesManager({
+  id,
+  memberName,
+  canRemind = false,
+  lastRemindedAt = null,
+}: {
+  id: string;
+  memberName: string;
+  // Reminders go only to active members, for quarters owed this year.
+  canRemind?: boolean;
+  lastRemindedAt?: string | null;
+}) {
   const thisYear = new Date().getFullYear();
   const [year, setYear] = useState(thisYear);
   const [status, setStatus] = useState<DuesStatus | null>(null);
@@ -106,6 +118,11 @@ export function DuesManager({ id, memberName }: { id: string; memberName: string
     setStatus(await api.get<DuesStatus>(`/members/${id}/dues?year=${year}`));
   };
 
+  const owedThisYear =
+    status && status.year === thisYear
+      ? status.quarters.filter((q) => q.due).length
+      : 0;
+
   return (
     <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -130,6 +147,18 @@ export function DuesManager({ id, memberName }: { id: string; memberName: string
         who joined mid-year or has an approved hardship deferral &mdash; waived
         quarters are not owed and can&apos;t be paid.
       </p>
+
+      {canRemind && owedThisYear > 0 && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50/60 px-4 py-3">
+          <p className="text-sm text-amber-900">
+            <span className="font-semibold">
+              {owedThisYear} {owedThisYear === 1 ? "quarter" : "quarters"} owed
+            </span>{" "}
+            this year. Email {memberName} a reminder with a link to pay online.
+          </p>
+          <RemindDuesButton id={id} name={memberName} lastSentAt={lastRemindedAt} />
+        </div>
+      )}
 
       {notice && (
         <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
